@@ -1,0 +1,66 @@
+–– Python ––
+
+pycache/
+*.py[cod]
+*.pyo
+.pyd
+venv/
+.env
+.env.
+
+–– Airflow / Docker ––
+
+logs/
+*.log
+airflow/airflow.db
+.docker/
+
+–– dbt ––
+
+/dbt/target/
+/dbt/.dbt/
+/dbt/packages/
+
+–– Terraform ––
+
+*.tfstate
+.tfstate.
+.terraform/
+.terragrunt-cache/
+
+–– AWS credentials ––
+
+*.pem
+*.key
+*.crt
+.aws/
+
+–– IDE / Editor ––
+
+.vscode/
+.idea/
+*.swp
+
+–– OS Files ––
+
+.DS_Store
+Thumbs.db
+
+–– Build / Output ––
+
+/dist/
+/build/
+*.egg-info/
+
+–– Notebooks / Data ––
+
+*.ipynb_checkpoints
+/data/
+*.parquet
+*.csv
+*.zip
+
+–– Secrets (pattern) ––
+
+secrets.yml
+secret.json
