@@ -94,4 +94,18 @@ $ cd dbt && dbt build
 
 ---
 
+## 🤝 Git Workflow
+Follow this simple branch & commit convention to keep history readable and automate change‑log generation:
+
+```text
+Branches:
+  feature/<short-topic> — new capability
+  fix/<bug>             — bug‑fix
+  chore/<misc>          — CI, docs, deps bump
+
+Commits:
+  <scope>: <imperative>   e.g., "airflow: add taxi_ingest DAG skeleton"
+```
+
+---
 
