@@ -107,5 +107,8 @@ Commits:
   <scope>: <imperative>   e.g., "airflow: add taxi_ingest DAG skeleton"
 ```
 
+## 📜 License
+This project is licensed under the MIT License - see the LICENSE file for details (License file TBD).
+
 ---
 
