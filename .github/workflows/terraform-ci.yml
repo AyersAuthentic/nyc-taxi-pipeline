@@ -6,6 +6,7 @@ on: # Defines when the workflow runs
   pull_request: # Run on pull requests targeting the main branch
     branches:
       - main
+      - dev
     paths: # Only run if Terraform files change
       - 'infra/**'
       - '.github/workflows/terraform-ci.yml' # Also run if the workflow file itself changes
