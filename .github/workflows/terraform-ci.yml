@@ -1,0 +1,49 @@
+# .github/workflows/terraform-ci.yml
+
+name: 'Terraform CI' # Name of the workflow displayed on GitHub Actions tab
+
+on: # Defines when the workflow runs
+  pull_request: # Run on pull requests targeting the main branch
+    branches:
+      - main
+      - dev
+    paths: # Only run if Terraform files change
+      - 'infra/**'
+      - '.github/workflows/terraform-ci.yml' # Also run if the workflow file itself changes
+
+jobs: # Container for the jobs to run
+  terraform_checks: # Name of the job (you can choose your own)
+    name: 'Terraform Format & Validate' # Name displayed for the job on GitHub
+    runs-on: ubuntu-latest # Specifies the runner environment
+
+    steps: # Sequence of tasks to perform
+      - name: 'Checkout Code' # Step to get your repository code
+        uses: actions/checkout@v4 # Uses the official GitHub action to check out code
+
+      - name: 'Set up Terraform' # Step to install Terraform
+        uses: hashicorp/setup-terraform@v3 # Uses the official HashiCorp action
+        with:
+          terraform_version: 1.8.0 # Specify a Terraform version (adjust as needed)
+
+      - name: 'Terraform Format Check' # Step to check formatting
+        id: fmt # Give the step an ID
+        run: terraform fmt -check -recursive
+        working-directory: ./infra # Specify the directory containing your Terraform code
+        continue-on-error: true # Allows workflow to continue to validation even if fmt fails
+
+      - name: 'Terraform Init' # Step to initialize Terraform
+        id: init # Give the step an ID
+        run: terraform init -backend=false # Initialize without backend for validation purposes
+        working-directory: ./infra # Specify the directory
+
+      - name: 'Terraform Validate' # Step to validate syntax and configuration
+        id: validate # Give the step an ID
+        run: terraform validate
+        working-directory: ./infra # Specify the directory
+
+      # (Optional but Recommended) Add a final step to report status based on fmt check
+      - name: Terraform Format Check Status
+        if: steps.fmt.outcome == 'failure'
+        run: |
+          echo "Terraform formatting check failed. Run 'terraform fmt -recursive' in the ./infra directory."
+          exit 1
