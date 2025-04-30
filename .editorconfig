@@ -1,0 +1,15 @@
+root = true                       # stop scanning in parent dirs
+
+[*]                               # default for every file
+indent_style = space
+indent_size  = 4                  # matches black
+charset      = utf-8
+end_of_line  = lf                 # Unix line endings
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{yml,yaml}]                    # YAML wants 2-space indents
+indent_size = 2
+
+[*.md]                            # don’t strip useful trailing dbl-spaces in Markdown
+trim_trailing_whitespace = false
