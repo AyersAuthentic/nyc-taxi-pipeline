@@ -23,9 +23,12 @@ airflow/airflow.db
 
 –– Terraform ––
 
-*.tfstate
-.tfstate.
 .terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.backup
+*.tfvars
+credentials.tf
 .terragrunt-cache/
 
 –– AWS credentials ––
@@ -64,6 +67,3 @@ Thumbs.db
 
 secrets.yml
 secret.json
-
-__ AI Context __
-/context
