@@ -1,13 +1,13 @@
 provider "aws" {
-  region                   = "us-east-1"
+  region                   = var.aws_region
   shared_credentials_files = ["~/.aws/credentials"]
   profile                  = "terraform-nyc-taxi"
 
   # Add default tags to all resources
   default_tags {
     tags = {
-      Project     = "nyc-taxi-pipeline"
-      Environment = "dev"
+      Project     = var.project_name
+      Environment = var.environment
       ManagedBy   = "terraform"
     }
   }
@@ -26,4 +26,14 @@ terraform {
 
 module "networking" {
   source = "./modules/networking"
+}
+
+module "s3" {
+  source        = "./modules/s3"
+  aws_region    = var.aws_region
+  bucket_prefix = "nyc-taxi-pipeline"
+  tags = {
+    Project     = var.project_name
+    Environment = var.environment
+  }
 }
