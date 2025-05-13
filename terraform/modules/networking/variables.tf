@@ -1,3 +1,16 @@
+variable "aws_region" {
+  description = "AWS region—for endpoint & tagging consistency"
+  type        = string
+}
+
+variable "tags" {
+  description = "Common tags applied to every resource"
+  type        = map(string)
+  default     = {}
+}
+
+
+
 variable "vpc_name" {
   description = "The name of the VPC"
   type        = string
