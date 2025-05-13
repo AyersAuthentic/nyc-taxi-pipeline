@@ -26,6 +26,11 @@ terraform {
 
 module "networking" {
   source = "./modules/networking"
+  aws_region = var.aws_region
+  tags = {
+    Project     = var.project_name
+    Environment = var.environment
+  }
 }
 
 module "s3" {
