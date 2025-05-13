@@ -13,3 +13,7 @@ indent_size = 2
 
 [*.md]                            # don’t strip useful trailing dbl-spaces in Markdown
 trim_trailing_whitespace = false
+
+# Terraform override
+[*.tf]
+indent_size = 2
