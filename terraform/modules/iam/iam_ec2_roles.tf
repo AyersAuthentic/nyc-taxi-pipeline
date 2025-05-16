@@ -59,7 +59,7 @@ data "aws_iam_policy_document" "airflow_ec2_s3_policy_doc" {
       "s3:GetObject",
       "s3:ListBucket",
       "s3:DeleteObject",
-      "s3:GetBucketLocation" # Often needed by Airflow S3 log handlers
+      "s3:GetBucketLocation"
     ]
     resources = [
       var.airflow_logs_s3_bucket_arn,
@@ -172,33 +172,12 @@ data "aws_iam_policy_document" "airflow_ec2_redshift_policy_doc" {
       "redshift-data:CancelStatement",
       "redshift-data:ListStatements"
     ]
-    # Scope to any Redshift Data API endpoint or specific ones if known
-    resources = ["*"] # Broad for Data API actions, can be scoped to specific workgroup/namespace ARNs if needed.
-    # e.g., var.redshift_serverless_workgroup_arn if action supports it
-    # For serverless, some actions use namespace ARN like:
-    # "arn:aws:redshift-serverless:${var.aws_region}:${var.account_id}:namespace/${split("-", split("/", var.redshift_serverless_namespace_arn)[1])[0]}"
+    resources = ["*"]
   }
-  # Potentially add redshift:GetClusterCredentials if connecting via JDBC/ODBC and need temporary creds
-  # statement {
-  #   sid    = "AllowRedshiftGetClusterCredentials"
-  #   effect = "Allow"
-  #   actions = ["redshift:GetClusterCredentials"]
-  #   resources = [
-  #     # Example for serverless (workgroup name is part of namespace ARN or derived)
-  #     # "arn:aws:redshift:${var.aws_region}:${var.account_id}:dbuser:${split("/", var.redshift_serverless_namespace_arn)[1]}/${var.redshift_db_user}",
-  #     # "arn:aws:redshift:${var.aws_region}:${var.account_id}:dbname:${split("/", var.redshift_serverless_namespace_arn)[1]}/${var.redshift_database_name}"
-  #     "*" # Or be more specific with actual resource ARNs from Redshift Serverless
-  #   ]
-  #   # condition {
-  #   #   test     = "StringEquals"
-  #   #   variable = "redshift:DbUser"
-  #   #   values   = [var.redshift_db_user]
-  #   # }
-  # }
 }
 resource "aws_iam_policy" "airflow_ec2_redshift_policy" {
   count       = local.enable_airflow_redshift_data_api_access ? 1 : 0
-  name        = "${var.project_name}-AirflowEC2RedshiftPolicy-${var.environment_name}"
+  name        = "${var.project_name}-AirflowEC2RedshiftPolicy-${var.environment}"
   description = "Allows Airflow EC2 to query Redshift via Data API."
   policy      = data.aws_iam_policy_document.airflow_ec2_redshift_policy_doc[0].json
   tags        = var.tags

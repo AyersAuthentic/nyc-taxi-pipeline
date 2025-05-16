@@ -62,11 +62,41 @@ variable "ingestion_lambda_function_arns" {
 variable "redshift_serverless_workgroup_arn" {
   description = "ARN of the Redshift Serverless workgroup for Data API access. Required if Airflow needs to query Redshift."
   type        = string
-  default     = null # Make it optional if not always needed
+  default     = null
 }
 
 variable "redshift_serverless_namespace_arn" {
   description = "ARN of the Redshift Serverless namespace. Often the same as workgroup ARN for some permissions or can be derived."
   type        = string
-  default     = null # Make it optional
+  default     = null
+}
+
+# --- Variables for Role-Redshift-Cluster ---
+variable "silver_bucket_arn" {
+  description = "The ARN of the S3 silver bucket for Redshift to read from/write to."
+  type        = string
+}
+
+variable "gold_bucket_arn" {
+  description = "The ARN of the S3 gold bucket for Redshift to read from/write to."
+  type        = string
+}
+
+
+# --- Variables for Role-GitHub-Actions-Deploy ---
+variable "github_org_name" {
+  description = "Your GitHub organization name (e.g., 'MyAwesomeOrg')."
+  type        = string
+}
+
+variable "github_repo_name" {
+  description = "Your GitHub repository name (e.g., 'nyc-taxi-pipeline')."
+  type        = string
+}
+
+variable "github_oidc_provider_url" {
+  description = "The URL of the GitHub OIDC provider. Defaults to the standard GitHub Actions OIDC provider URL."
+  type        = string
+  default     = "token.actions.githubusercontent.com"
+
 }
