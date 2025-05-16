@@ -3,7 +3,7 @@ provider "aws" {
   shared_credentials_files = ["~/.aws/credentials"]
   profile                  = "terraform-nyc-taxi"
 
-  # Add default tags to all resources
+
   default_tags {
     tags = {
       Project     = var.project_name
@@ -13,7 +13,7 @@ provider "aws" {
   }
 }
 
-# Configure backend for storing Terraform state
+
 terraform {
   backend "s3" {
     bucket       = "nyc-taxi-pipeline-tfstate"
@@ -41,4 +41,12 @@ module "s3" {
     Project     = var.project_name
     Environment = var.environment
   }
+}
+
+module "iam_roles" {
+  source = "./modules/iam"
+
+  bronze_bucket_arn = module.s3.bronze_bucket_arn
+
+  #don't forget to pass secrets manager arns
 }
