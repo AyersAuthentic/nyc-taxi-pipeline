@@ -16,3 +16,23 @@ variable "environment" {
   default     = "dev"
 }
 
+variable "account_id" {
+  description = "AWS account ID"
+  type        = string
+}
+
+variable "github_org_name" {
+  description = "Your GitHub organization name (e.g., 'MyAwesomeOrg')."
+  type        = string
+  default     = "AyersAuthentic"
+}
+
+variable "github_repo_name" {
+  description = "Your GitHub repository name (e.g., 'nyc-taxi-pipeline')."
+  type        = string
+  default     = "nyc-taxi-pipeline"
+}
+
+
+
+
