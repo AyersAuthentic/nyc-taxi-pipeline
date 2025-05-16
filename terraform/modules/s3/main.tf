@@ -2,9 +2,9 @@ data "aws_caller_identity" "current" {}
 
 locals {
   buckets = {
-    bronze = "${var.bucket_prefix}-bronze-${data.aws_caller_identity.current.account_id}"
-    silver = "${var.bucket_prefix}-silver-${data.aws_caller_identity.current.account_id}"
-    gold   = "${var.bucket_prefix}-gold-${data.aws_caller_identity.current.account_id}"
+    bronze = "${var.bucket_prefix}-bronze-${var.account_id}"
+    silver = "${var.bucket_prefix}-silver-${var.account_id}"
+    gold   = "${var.bucket_prefix}-gold-${var.account_id}"
   }
 }
 
