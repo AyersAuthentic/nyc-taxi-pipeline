@@ -22,17 +22,29 @@ variable "account_id" {
 }
 
 variable "github_org_name" {
-  description = "Your GitHub organization name (e.g., 'MyAwesomeOrg')."
+  description = "GitHub organization name (e.g., 'MyAwesomeOrg')."
   type        = string
   default     = "AyersAuthentic"
 }
 
 variable "github_repo_name" {
-  description = "Your GitHub repository name (e.g., 'nyc-taxi-pipeline')."
+  description = "GitHub repository name (e.g., 'nyc-taxi-pipeline')."
   type        = string
   default     = "nyc-taxi-pipeline"
 }
 
+variable "user_ssh_ip" {
+  description = "Local/Remote IP address (CIDR format, e.g., 'x.x.x.x/32') for SSH access. Set via terraform.tfvars."
+  type        = string
+}
 
+variable "user_airflow_ui_ip" {
+  description = "Local/Remote IP address (CIDR format, e.g., 'x.x.x.x/32') for accessing the Airflow UI. Set via terraform.tfvars."
+  type        = string
+}
 
+variable "user_metabase_ui_ip" {
+  description = "Local/Remote IP address (CIDR format, e.g., 'x.x.x.x/32') for accessing the Metabase UI. Set via terraform.tfvars."
+  type        = string
+}
 
