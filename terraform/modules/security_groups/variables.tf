@@ -9,7 +9,7 @@ variable "project_name" {
   type        = string
 }
 
-variable "environment_name" {
+variable "environment" {
   description = "The name of the environment (e.g., 'dev', 'staging', 'prod'). Used for naming resources."
   type        = string
 }
@@ -28,5 +28,9 @@ variable "local_ip_for_ssh" {
 variable "local_ip_for_airflow_ui" {
   description = "Your IP address (CIDR format, e.g., 'x.x.x.x/32') for accessing the Airflow UI. Set to '0.0.0.0/0' for public access (ensure Airflow itself is secured)."
   type        = string
+}
 
+variable "local_ip_for_metabase_ui" {
+  description = "Your IP address (CIDR format, e.g., 'x.x.x.x/32') for accessing the Metabase UI. Set to '0.0.0.0/0' for public access (ensure Metabase itself is secured)."
+  type        = string
 }

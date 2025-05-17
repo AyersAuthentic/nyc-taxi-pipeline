@@ -72,14 +72,15 @@ module "security_groups" {
 
   vpc_id = module.networking.vpc_id
 
-  project_name     = var.project_name
-  environment_name = var.environment
+  project_name = var.project_name
+  environment  = var.environment
   tags = {
     Project     = var.project_name
     Environment = var.environment
   }
 
-  local_ip_for_ssh        = var.user_ssh_ip
-  local_ip_for_airflow_ui = var.user_airflow_ui_ip
+  local_ip_for_ssh         = var.user_ssh_ip
+  local_ip_for_airflow_ui  = var.user_airflow_ui_ip
+  local_ip_for_metabase_ui = var.user_metabase_ui_ip
 
 }
