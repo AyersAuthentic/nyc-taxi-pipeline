@@ -1,10 +1,10 @@
 resource "aws_security_group" "airflow_ec2_sg" {
-  name        = "${var.project_name}-sg-airflow-ec2-${var.environment_name}"
+  name        = "${var.project_name}-sg-airflow-ec2-${var.environment}"
   description = "Security group for the Airflow EC2 instance"
   vpc_id      = var.vpc_id
 
   tags = merge(var.tags, {
-    Name = "${var.project_name}-sg-airflow-ec2-${var.environment_name}"
+    Name = "${var.project_name}-sg-airflow-ec2-${var.environment}"
   })
 
 
