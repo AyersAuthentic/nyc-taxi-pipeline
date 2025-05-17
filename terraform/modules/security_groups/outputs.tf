@@ -12,3 +12,8 @@ output "rds_airflow_sg_id" {
   description = "The ID of the RDS Airflow security group."
   value       = aws_security_group.rds_airflow_sg.id
 }
+
+output "redshift_vpc_sg_id" {
+  description = "The ID of the Redshift VPC security group."
+  value       = aws_security_group.redshift_vpc_sg.id
+}

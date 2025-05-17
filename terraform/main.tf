@@ -74,6 +74,9 @@ module "security_groups" {
 
   project_name = var.project_name
   environment  = var.environment
+  aws_region   = var.aws_region
+
+
   tags = {
     Project     = var.project_name
     Environment = var.environment
