@@ -33,6 +33,12 @@ variable "github_repo_name" {
   default     = "nyc-taxi-pipeline"
 }
 
+variable "user_ssh_ip" {
+  description = "Your IP address (CIDR format, e.g., 'x.x.x.x/32') for SSH access. Set via terraform.tfvars."
+  type        = string
+}
 
-
-
+variable "user_airflow_ui_ip" {
+  description = "Your IP address (CIDR format, e.g., 'x.x.x.x/32') for accessing the Airflow UI. Set via terraform.tfvars."
+  type        = string
+}
