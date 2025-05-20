@@ -29,10 +29,7 @@ terraform {
 module "networking" {
   source     = "./modules/networking"
   aws_region = var.aws_region
-  tags = {
-    Project     = var.project_name
-    Environment = var.environment
-  }
+
 }
 
 module "s3" {
@@ -40,10 +37,6 @@ module "s3" {
   aws_region    = var.aws_region
   bucket_prefix = "nyc-taxi-pipeline"
   account_id    = data.aws_caller_identity.current.account_id
-  tags = {
-    Project     = var.project_name
-    Environment = var.environment
-  }
 }
 
 module "iam_roles" {
@@ -77,13 +70,33 @@ module "security_groups" {
   aws_region   = var.aws_region
 
 
-  tags = {
-    Project     = var.project_name
-    Environment = var.environment
-  }
-
   local_ip_for_ssh         = var.user_ssh_ip
   local_ip_for_airflow_ui  = var.user_airflow_ui_ip
   local_ip_for_metabase_ui = var.user_metabase_ui_ip
+}
+
+
+module "secrets_manager" {
+  source = "./modules/secrets_manager"
+
+  project_name = var.project_name
+  environment  = var.environment
+}
+
+
+module "rds_airflow_db" {
+  source = "./modules/rds"
+
+
+  project_name = var.project_name
+  environment  = var.environment
+  aws_region   = var.aws_region
+
+
+  # Dependencies from other modules
+  private_subnet_ids     = module.networking.private_subnets
+  rds_allowed_sg_id      = module.security_groups.rds_airflow_sg_id
+  db_password_secret_arn = module.secrets_manager.rds_master_password_secret_arn
+
 
 }
