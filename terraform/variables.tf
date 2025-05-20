@@ -48,3 +48,13 @@ variable "user_metabase_ui_ip" {
   type        = string
 }
 
+variable "tags" {
+  description = "A map of common tags to apply to all resources created by this module."
+  type        = map(string)
+  default = {
+    Project     = "nyc-taxi-pipeline"
+    Environment = "dev"
+  }
+}
+
+
