@@ -82,7 +82,7 @@ resource "aws_iam_role_policy_attachment" "lambda_external_s3_bronze_attach" {
 # Permissions Policy for Secrets Manager Access (Conditional)
 locals {
   # Determine if Secrets Manager access is requested by checking if the input list has items.
-  enable_secrets_manager_access = length(var.secrets_manager_read_access_arns) > 0
+  enable_secrets_manager_access = length(var.lambda_external_role_secret_arns) > 0
 }
 
 data "aws_iam_policy_document" "lambda_external_secrets_manager_policy_doc" {
@@ -97,7 +97,7 @@ data "aws_iam_policy_document" "lambda_external_secrets_manager_policy_doc" {
       # "secretsmanager:DescribeSecret" # Optional, if Lambda needs to check if a secret exists first
     ]
     # Grants read access ONLY to the specific secret ARNs passed in var.secrets_manager_read_access_arns.
-    resources = var.secrets_manager_read_access_arns
+    resources = var.lambda_external_role_secret_arns
   }
 }
 

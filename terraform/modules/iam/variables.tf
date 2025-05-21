@@ -10,8 +10,23 @@ variable "bronze_bucket_arn" {
   type        = string
 }
 
-variable "secrets_manager_read_access_arns" {
-  description = "A list of ARNs of AWS Secrets Manager secrets that the Lambda external role needs read access to (e.g., for API keys)."
+// For Lambda roles (specifically for NOAA API key)
+variable "lambda_external_role_secret_arns" {
+  description = "List of Secrets Manager secret ARNs for the external Lambda role to access (e.g., NOAA API key)."
+  type        = list(string)
+  default     = []
+}
+
+// For Airflow EC2 role (specifically for RDS password)
+variable "airflow_ec2_role_secret_arns" {
+  description = "List of Secrets Manager secret ARNs for the Airflow EC2 role to access (e.g., RDS password)."
+  type        = list(string)
+  default     = []
+}
+
+// For the Terraform execution role (e.g., GitHub Actions role)
+variable "terraform_execution_role_secret_arns" {
+  description = "List of Secrets Manager secret ARNs for the Terraform execution role to access."
   type        = list(string)
   default     = []
 }

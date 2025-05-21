@@ -19,7 +19,7 @@ resource "aws_iam_role" "redshift_serverless_role" {
 
   tags = merge(var.tags, {
     Name        = "${var.project_name}-Role-Redshift-Serverless-${var.environment}"
-    Description = "IAM Role for Redshift Serverless to access other AWS services (e.g., S3)."
+    Description = "IAM Role for Redshift Serverless to access S3 and other AWS services"
   })
 }
 
