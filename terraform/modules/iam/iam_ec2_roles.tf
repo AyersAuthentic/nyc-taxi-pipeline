@@ -106,7 +106,7 @@ resource "aws_iam_role_policy_attachment" "airflow_ec2_cloudwatch_attach" {
 
 # --- Secrets Manager Policy for Airflow EC2 (Conditional) ---
 locals {
-  enable_airflow_secrets_manager_access = length(var.airflow_secrets_manager_arns) > 0
+  enable_airflow_secrets_manager_access = length(var.airflow_ec2_role_secret_arns) > 0
 }
 data "aws_iam_policy_document" "airflow_ec2_secrets_manager_policy_doc" {
   count = local.enable_airflow_secrets_manager_access ? 1 : 0
@@ -114,7 +114,7 @@ data "aws_iam_policy_document" "airflow_ec2_secrets_manager_policy_doc" {
     sid       = "AllowReadSpecifiedSecretsForAirflow"
     effect    = "Allow"
     actions   = ["secretsmanager:GetSecretValue"]
-    resources = var.airflow_secrets_manager_arns
+    resources = var.airflow_ec2_role_secret_arns
   }
 }
 resource "aws_iam_policy" "airflow_ec2_secrets_manager_policy" {
