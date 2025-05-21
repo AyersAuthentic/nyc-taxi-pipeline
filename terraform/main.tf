@@ -57,7 +57,9 @@ module "iam_roles" {
   airflow_logs_s3_bucket_arn = module.s3.bronze_bucket_arn
 
   #secrets manager arns
-  secrets_manager_read_access_arns = []
+  airflow_ec2_role_secret_arns         = [module.secrets_manager.rds_master_password_secret_arn]
+  lambda_external_role_secret_arns     = [module.secrets_manager.noaa_api_key_secret_arn]
+  terraform_execution_role_secret_arns = []
 }
 
 module "security_groups" {
@@ -84,19 +86,19 @@ module "secrets_manager" {
 }
 
 
-module "rds_airflow_db" {
-  source = "./modules/rds"
+# module "rds_airflow_db" {
+#   source = "./modules/rds"
 
 
-  project_name = var.project_name
-  environment  = var.environment
-  aws_region   = var.aws_region
+#   project_name = var.project_name
+#   environment  = var.environment
+#   aws_region   = var.aws_region
 
 
-  # Dependencies from other modules
-  private_subnet_ids     = module.networking.private_subnets
-  rds_allowed_sg_id      = module.security_groups.rds_airflow_sg_id
-  db_password_secret_arn = module.secrets_manager.rds_master_password_secret_arn
+#   # Dependencies from other modules
+#   private_subnet_ids     = module.networking.private_subnets
+#   rds_allowed_sg_id      = module.security_groups.rds_airflow_sg_id
+#   db_password_secret_arn = module.secrets_manager.rds_master_password_secret_arn
 
 
-}
+# }
