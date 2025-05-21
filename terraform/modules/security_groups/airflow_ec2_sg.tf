@@ -33,8 +33,20 @@ resource "aws_security_group" "airflow_ec2_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  egress {
+    description     = "PostgreSQL access from Airflow EC2"
+    from_port       = 5432
+    to_port         = 5432
+    protocol        = "tcp"
+    security_groups = [aws_security_group.rds_airflow_sg.id]
+  }
 
-  # TODO (to be refined when other SGs are defined):
-  # - Egress to SG_RDS_Airflow on port 5432 (PostgreSQL)
-  # - Egress to SG_Redshift_VPC on port 5439 (Redshift)
+  egress {
+    description     = "Redshift access from Airflow EC2"
+    from_port       = 5439
+    to_port         = 5439
+    protocol        = "tcp"
+    security_groups = [aws_security_group.redshift_vpc_sg.id]
+  }
+
 }

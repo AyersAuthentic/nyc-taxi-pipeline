@@ -8,13 +8,6 @@ resource "aws_security_group" "redshift_vpc_sg" {
   description = "Security group for Redshift Serverless ENIs within the VPC"
   vpc_id      = var.vpc_id
 
-  ingress {
-    description     = "Redshift access from Airflow EC2"
-    from_port       = 5439
-    to_port         = 5439
-    protocol        = "tcp"
-    security_groups = [aws_security_group.airflow_ec2_sg.id]
-  }
 
   ingress {
     description = "Direct Redshift access from my admin IP"
@@ -41,13 +34,12 @@ resource "aws_security_group" "redshift_vpc_sg" {
   )
 }
 
-# --- Security Group Rule for Redshift Ingress from Metabase (Fixes cycle) ---
-resource "aws_security_group_rule" "redshift_ingress_from_metabase" {
+resource "aws_security_group_rule" "redshift_ingress_from_airflow_ec2" {
   type                     = "ingress"
   security_group_id        = aws_security_group.redshift_vpc_sg.id
-  source_security_group_id = aws_security_group.metabase_ec2_sg.id
+  source_security_group_id = aws_security_group.airflow_ec2_sg.id
   from_port                = 5439
   to_port                  = 5439
   protocol                 = "tcp"
-  description              = "Ingress from Metabase EC2 to Redshift (defined as separate rule)"
+  description              = "Ingress from Airflow EC2 to Redshift"
 }
