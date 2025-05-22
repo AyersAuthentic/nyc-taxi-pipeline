@@ -23,3 +23,16 @@ resource "aws_secretsmanager_secret" "noaa_api_key" {
     }
   )
 }
+
+resource "aws_secretsmanager_secret" "redshift_admin_password" {
+  name        = "${var.project_name}-${var.environment}-redshift-admin-password"
+  description = "Admin password for Redshift Serverless"
+
+  tags = merge(
+    var.tags,
+    {
+      Name          = "${var.project_name}-${var.environment}-redshift-admin-password"
+      SecretPurpose = "Redshift Admin Password"
+    }
+  )
+}
