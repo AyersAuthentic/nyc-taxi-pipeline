@@ -115,3 +115,36 @@ module "secrets_manager" {
 #   redshift_security_group_id     = module.security_groups.sg_redshift_vpc_id
 
 # }
+
+
+
+
+# module "ec2_airflow" {
+#   source = "./modules/ec2"
+
+#   project_name   = var.project_name
+#   environment    = var.environment
+#   instance_type  = var.ec2_instance_type
+#   ec2_key_name   = var.ec2_key_name
+
+
+#   public_subnet_id          = module.networking.public_subnet_ids[0]
+#   airflow_ec2_sg_id         = module.security_groups.sg_airflow_ec2_id
+#   iam_instance_profile_name = module.iam.airflow_ec2_instance_profile_name
+#   # user_data_script = file("${path.root}/my_custom_airflow_setup.sh")
+# }
+
+# /main.tf (Root module - snippet)
+
+module "lambda_functions" {
+  source = "./modules/lambda"
+
+  project_name = var.project_name
+  environment  = var.environment
+
+
+  lambda_execution_role_arn = module.iam_roles.lambda_external_role_arn
+  noaa_api_key_secret_arn   = module.secrets_manager.noaa_api_key_secret_arn
+
+
+}
