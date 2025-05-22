@@ -17,3 +17,13 @@ output "noaa_api_key_secret_name" {
   description = "The name of the NOAA API key secret in Secrets Manager."
   value       = aws_secretsmanager_secret.noaa_api_key.name
 }
+
+output "redshift_admin_password_secret_arn" {
+  description = "The ARN of the Redshift admin password secret in Secrets Manager."
+  value       = aws_secretsmanager_secret.redshift_admin_password.arn
+}
+
+output "redshift_admin_password_secret_name" {
+  description = "The name of the Redshift admin password secret in Secrets Manager."
+  value       = aws_secretsmanager_secret.redshift_admin_password.name
+}

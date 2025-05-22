@@ -57,4 +57,18 @@ variable "tags" {
   }
 }
 
+# --- EC2 ---
+variable "ec2_key_name" {
+  description = "Name of the EC2 key pair for SSH access."
+  type        = string
+  default     = "nyc-taxi-pipeline-key"
+}
+
+variable "ec2_instance_type" {
+  description = "EC2 instance type for Airflow (e.g., t3.micro, t4g.micro)."
+  type        = string
+  default     = "t3.micro"
+}
+
+
 
