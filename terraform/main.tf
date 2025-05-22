@@ -102,3 +102,16 @@ module "secrets_manager" {
 
 
 # }
+
+
+
+# module "redshift_serverless" {
+#   source = "./modules/redshift"
+
+#   project_name                   = var.project_name
+#   admin_user_password_secret_arn = module.secrets_manager.redshift_admin_password_secret_arn
+#   redshift_iam_role_arn          = module.iam.redshift_service_role_arn
+#   private_subnet_ids             = module.networking.private_subnet_ids
+#   redshift_security_group_id     = module.security_groups.sg_redshift_vpc_id
+
+# }
