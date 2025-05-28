@@ -27,3 +27,15 @@ output "redshift_admin_password_secret_name" {
   description = "The name of the Redshift admin password secret in Secrets Manager."
   value       = aws_secretsmanager_secret.redshift_admin_password.name
 }
+
+output "rds_master_password_value" {
+  description = "The generated RDS master password."
+  value       = random_password.rds_password.result
+  sensitive   = true
+}
+
+output "redshift_admin_password_value" {
+  description = "The generated Redshift admin password."
+  value       = random_password.redshift_password.result
+  sensitive   = true
+}

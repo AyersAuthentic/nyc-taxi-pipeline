@@ -86,55 +86,55 @@ module "secrets_manager" {
 }
 
 
-# module "rds_airflow_db" {
-#   source = "./modules/rds"
+module "rds_airflow_db" {
+  source = "./modules/rds"
 
 
-#   project_name = var.project_name
-#   environment  = var.environment
-#   aws_region   = var.aws_region
+  project_name = var.project_name
+  environment  = var.environment
+  aws_region   = var.aws_region
 
 
-#   # Dependencies from other modules
-#   private_subnet_ids     = module.networking.private_subnets
-#   rds_allowed_sg_id      = module.security_groups.rds_airflow_sg_id
-#   db_password_secret_arn = module.secrets_manager.rds_master_password_secret_arn
+  # Dependencies from other modules
+  private_subnet_ids     = module.networking.private_subnets
+  rds_allowed_sg_id      = module.security_groups.rds_airflow_sg_id
+  db_password_secret_arn = module.secrets_manager.rds_master_password_secret_arn
+  master_password        = module.secrets_manager.rds_master_password_value
 
 
-# }
-
-
-
-# module "redshift_serverless" {
-#   source = "./modules/redshift"
-
-#   project_name                   = var.project_name
-#   admin_user_password_secret_arn = module.secrets_manager.redshift_admin_password_secret_arn
-#   redshift_iam_role_arn          = module.iam.redshift_service_role_arn
-#   private_subnet_ids             = module.networking.private_subnet_ids
-#   redshift_security_group_id     = module.security_groups.sg_redshift_vpc_id
-
-# }
+}
 
 
 
+module "redshift_serverless" {
+  source = "./modules/redshift"
 
-# module "ec2_airflow" {
-#   source = "./modules/ec2"
+  project_name                   = var.project_name
+  admin_user_password_secret_arn = module.secrets_manager.redshift_admin_password_secret_arn
+  redshift_iam_role_arn          = module.iam_roles.redshift_serverless_role_arn
+  private_subnet_ids             = module.networking.private_subnets
+  redshift_security_group_id     = module.security_groups.redshift_vpc_sg_id
+  admin_user_password            = module.secrets_manager.redshift_admin_password_value
 
-#   project_name   = var.project_name
-#   environment    = var.environment
-#   instance_type  = var.ec2_instance_type
-#   ec2_key_name   = var.ec2_key_name
+}
 
 
-#   public_subnet_id          = module.networking.public_subnet_ids[0]
-#   airflow_ec2_sg_id         = module.security_groups.sg_airflow_ec2_id
-#   iam_instance_profile_name = module.iam.airflow_ec2_instance_profile_name
-#   # user_data_script = file("${path.root}/my_custom_airflow_setup.sh")
-# }
+module "ec2_airflow" {
+  source = "./modules/ec2"
 
-# /main.tf (Root module - snippet)
+  project_name  = var.project_name
+  environment   = var.environment
+  instance_type = var.ec2_instance_type
+  ec2_key_name  = var.ec2_key_name
+
+
+  public_subnet_id          = module.networking.public_subnets[0]
+  airflow_ec2_sg_id         = module.security_groups.airflow_ec2_sg_id
+  iam_instance_profile_name = module.iam_roles.airflow_ec2_instance_profile_name
+  # user_data_script = file("${path.root}/my_custom_airflow_setup.sh")
+}
+
+
 
 module "lambda_functions" {
   source = "./modules/lambda"
