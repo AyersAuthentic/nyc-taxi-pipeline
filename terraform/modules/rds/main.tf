@@ -2,9 +2,6 @@ data "aws_secretsmanager_secret_version" "db_password" {
   secret_id = var.db_password_secret_arn
 }
 
-locals {
-  db_password_from_secret = jsondecode(data.aws_secretsmanager_secret_version.db_password.secret_string)["password"]
-}
 
 resource "aws_db_subnet_group" "default" {
   name        = "${var.project_name}-${var.environment}-rds-sng"
@@ -28,7 +25,7 @@ resource "aws_db_instance" "default" {
   instance_class         = var.db_instance_class
   db_name                = var.db_name
   username               = var.db_username
-  password               = local.db_password_from_secret
+  password               = var.master_password
   db_subnet_group_name   = aws_db_subnet_group.default.name
   vpc_security_group_ids = [var.rds_allowed_sg_id]
 
