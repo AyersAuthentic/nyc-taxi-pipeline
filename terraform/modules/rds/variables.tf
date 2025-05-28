@@ -99,3 +99,8 @@ variable "apply_immediately" {
   type        = bool
   default     = true
 }
+
+variable "master_password" {
+  description = "The master password for the RDS PostgreSQL instance for Airflow."
+  type        = string
+}

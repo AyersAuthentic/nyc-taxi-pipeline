@@ -59,3 +59,8 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "admin_user_password" {
+  description = "The admin password for the Redshift Serverless namespace."
+  type        = string
+}
