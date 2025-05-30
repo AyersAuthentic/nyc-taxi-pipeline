@@ -33,8 +33,3 @@ output "db_subnet_group_name" {
   value       = aws_db_subnet_group.default.name
 }
 
-output "db_password_secret_arn_used" {
-  description = "The ARN of the Secrets Manager secret used for the DB password."
-  value       = var.db_password_secret_arn
-  sensitive   = true
-}

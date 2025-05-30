@@ -1,8 +1,3 @@
-data "aws_secretsmanager_secret_version" "db_password" {
-  secret_id = var.db_password_secret_arn
-}
-
-
 resource "aws_db_subnet_group" "default" {
   name        = "${var.project_name}-${var.environment}-rds-sng"
   description = "DB Subnet Group for ${var.project_name} ${var.environment}"
@@ -47,8 +42,4 @@ resource "aws_db_instance" "default" {
       Name = "${var.project_name}-${var.environment}-airflow-db"
     }
   )
-
-  depends_on = [
-    data.aws_secretsmanager_secret_version.db_password
-  ]
 }
