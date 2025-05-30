@@ -96,10 +96,9 @@ module "rds_airflow_db" {
 
 
   # Dependencies from other modules
-  private_subnet_ids     = module.networking.private_subnets
-  rds_allowed_sg_id      = module.security_groups.rds_airflow_sg_id
-  db_password_secret_arn = module.secrets_manager.rds_master_password_secret_arn
-  master_password        = module.secrets_manager.rds_master_password_value
+  private_subnet_ids = module.networking.private_subnets
+  rds_allowed_sg_id  = module.security_groups.rds_airflow_sg_id
+  master_password    = module.secrets_manager.rds_master_password_value
 
 
 }

@@ -71,10 +71,6 @@ variable "db_username" {
   default     = "airflow_user"
 }
 
-variable "db_password_secret_arn" {
-  description = "The ARN of the AWS Secrets Manager secret holding the master DB password."
-  type        = string
-}
 
 variable "rds_backup_retention_period" {
   description = "The days to retain backups for."

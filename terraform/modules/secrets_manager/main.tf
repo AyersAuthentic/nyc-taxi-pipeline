@@ -1,12 +1,14 @@
 resource "random_password" "rds_password" {
-  length  = 20
-  special = true
+  length           = 20
+  special          = true
+  override_special = "!#$%&()*+,-.:;<=>?_~"
 }
 
 
 resource "aws_secretsmanager_secret" "rds_master_password" {
-  name        = "${var.project_name}-${var.environment}-rds-master-password"
-  description = "Stores the master password for the RDS PostgreSQL instance for Airflow."
+  name                    = "${var.project_name}-${var.environment}-rds-master-password"
+  description             = "Stores the master password for the RDS PostgreSQL instance for Airflow."
+  recovery_window_in_days = 0
 
   tags = merge(
     var.tags,
@@ -24,8 +26,9 @@ resource "aws_secretsmanager_secret_version" "rds_master_password_version" {
 
 
 resource "aws_secretsmanager_secret" "noaa_api_key" {
-  name        = "${var.project_name}-${var.environment}-noaa-api-key"
-  description = "Stores the API key for accessing the NOAA CDO v2 API."
+  name                    = "${var.project_name}-${var.environment}-noaa-api-key"
+  description             = "Stores the API key for accessing the NOAA CDO v2 API."
+  recovery_window_in_days = 0
 
   tags = merge(
     var.tags,
@@ -38,13 +41,15 @@ resource "aws_secretsmanager_secret" "noaa_api_key" {
 
 
 resource "random_password" "redshift_password" {
-  length  = 20
-  special = true
+  length           = 20
+  special          = true
+  override_special = "!#$%&()*+,-.:;<=>?_~"
 }
 
 resource "aws_secretsmanager_secret" "redshift_admin_password" {
-  name        = "${var.project_name}-${var.environment}-redshift-admin-password"
-  description = "Admin password for Redshift Serverless"
+  name                    = "${var.project_name}-${var.environment}-redshift-admin-password"
+  description             = "Admin password for Redshift Serverless"
+  recovery_window_in_days = 0
 
   tags = merge(
     var.tags,
