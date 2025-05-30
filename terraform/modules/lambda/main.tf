@@ -19,7 +19,7 @@ resource "aws_lambda_function" "nyc_taxi_ingestion_lambda" {
 
   tags = merge(var.tags, {
     Name    = "${var.project_name}-nyc-taxi-ingest-${var.environment}",
-    Purpose = "Ingest NYC Taxi Data (Placeholder)"
+    Purpose = "Ingest NYC Taxi Data Placeholder"
   })
 }
 
@@ -45,6 +45,6 @@ resource "aws_lambda_function" "noaa_weather_ingestion_lambda" {
 
   tags = merge(var.tags, {
     Name    = "${var.project_name}-noaa-weather-ingest-${var.environment}",
-    Purpose = "Ingest NOAA Weather Data (Placeholder)"
+    Purpose = "Ingest NOAA Weather Data Placeholder"
   })
 }
