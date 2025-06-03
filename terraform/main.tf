@@ -138,8 +138,9 @@ module "ec2_airflow" {
 module "lambda_functions" {
   source = "./modules/lambda"
 
-  project_name = var.project_name
-  environment  = var.environment
+  project_name       = var.project_name
+  environment        = var.environment
+  bronze_bucket_name = module.s3.bronze_bucket_id
 
 
   lambda_execution_role_arn = module.iam_roles.lambda_external_role_arn

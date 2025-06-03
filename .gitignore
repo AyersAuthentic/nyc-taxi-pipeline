@@ -67,3 +67,7 @@ Thumbs.db
 
 secrets.yml
 secret.json
+
+-- Lambda Packages
+*/package/
+*/*.zip

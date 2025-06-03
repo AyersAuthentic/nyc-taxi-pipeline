@@ -20,7 +20,31 @@ resource "aws_iam_role" "lambda_external_role" {
   })
 }
 
-# --- Permissions Policy for CloudWatch Logs ---
+data "aws_iam_policy_document" "lambda_s3_nyc_tlc_read_policy_doc" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "s3:GetObject"
+    ]
+    resources = ["arn:aws:s3:::nyc-tlc/*"]
+  }
+
+}
+
+resource "aws_iam_policy" "lambda_s3_nyc_tlc_read_policy" {
+  name        = "LambdaS3NycTlcReadPolicy"
+  description = "Allows Lambda functions to read data from the public NYC TLC S3 bucket."
+  policy      = data.aws_iam_policy_document.lambda_s3_nyc_tlc_read_policy_doc.json
+  tags        = var.tags
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_s3_nyc_tlc_read_attach" {
+  role       = aws_iam_role.lambda_external_role.name
+  policy_arn = aws_iam_policy.lambda_s3_nyc_tlc_read_policy.arn
+}
+
+
+
 
 data "aws_iam_policy_document" "lambda_external_cloudwatch_policy_doc" {
   statement {
@@ -46,7 +70,6 @@ resource "aws_iam_role_policy_attachment" "lambda_external_cloudwatch_attach" {
   policy_arn = aws_iam_policy.lambda_external_cloudwatch_policy.arn
 }
 
-# --- Permissions Policy for S3 Bronze Bucket Access ---
 
 data "aws_iam_policy_document" "lambda_external_s3_bronze_policy_doc" {
   statement {
@@ -79,14 +102,12 @@ resource "aws_iam_role_policy_attachment" "lambda_external_s3_bronze_attach" {
   policy_arn = aws_iam_policy.lambda_external_s3_bronze_policy.arn
 }
 
-# Permissions Policy for Secrets Manager Access (Conditional)
+
 locals {
-  # Determine if Secrets Manager access is requested by checking if the input list has items.
   enable_secrets_manager_access = length(var.lambda_external_role_secret_arns) > 0
 }
 
 data "aws_iam_policy_document" "lambda_external_secrets_manager_policy_doc" {
-  # Only process this data source if enable_secrets_manager_access is true.
   count = local.enable_secrets_manager_access ? 1 : 0
 
   statement {
@@ -94,31 +115,24 @@ data "aws_iam_policy_document" "lambda_external_secrets_manager_policy_doc" {
     effect = "Allow"
     actions = [
       "secretsmanager:GetSecretValue"
-      # "secretsmanager:DescribeSecret" # Optional, if Lambda needs to check if a secret exists first
     ]
-    # Grants read access ONLY to the specific secret ARNs passed in var.secrets_manager_read_access_arns.
     resources = var.lambda_external_role_secret_arns
   }
 }
 
 resource "aws_iam_policy" "lambda_external_secrets_manager_policy" {
-  # Only create this policy if enable_secrets_manager_access is true.
   count = local.enable_secrets_manager_access ? 1 : 0
 
-  # Consider parameterizing the name.
   name        = "LambdaExternalSecretsManagerPolicy"
   description = "Allows Lambda functions to read specified secrets from Secrets Manager."
-  # Access the policy document using the count index [0] because 'count' makes it a list.
-  policy = data.aws_iam_policy_document.lambda_external_secrets_manager_policy_doc[0].json
-  tags   = var.tags
+  policy      = data.aws_iam_policy_document.lambda_external_secrets_manager_policy_doc[0].json
+  tags        = var.tags
 }
 
 resource "aws_iam_role_policy_attachment" "lambda_external_secrets_manager_attach" {
-  # Only create this attachment if enable_secrets_manager_access is true.
   count = local.enable_secrets_manager_access ? 1 : 0
 
-  role = aws_iam_role.lambda_external_role.name
-  # Access the policy ARN using the count index [0].
+  role       = aws_iam_role.lambda_external_role.name
   policy_arn = aws_iam_policy.lambda_external_secrets_manager_policy[0].arn
 }
 
