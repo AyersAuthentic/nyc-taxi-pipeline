@@ -72,3 +72,4 @@ secret.json
 -- Lambda Packages
 */package/
 */*.zip
+terraform/modules/lambda/lambda_functions/nyc_taxi_ingestion/package/
