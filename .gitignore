@@ -73,3 +73,4 @@ secret.json
 */package/
 */*.zip
 terraform/modules/lambda/lambda_functions/nyc_taxi_ingestion/package/
+terraform/modules/lambda/lambda_functions/noaa_weather_ingestion/package/
