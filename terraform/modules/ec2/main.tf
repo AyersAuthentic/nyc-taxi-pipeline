@@ -7,7 +7,7 @@ data "aws_ami" "amazon_linux_2" {
 
   filter {
     name   = "name"
-    values = ["amzn2-ami-hvm-*-x86_64-gp2"]
+    values = ["al2023-ami-2023.*-x86_64"]
   }
 
   filter {
@@ -46,8 +46,6 @@ resource "aws_instance" "airflow_ec2" {
               unzip awscliv2.zip
               sudo ./aws/install
               rm -rf awscliv2.zip aws
-              # Example: Clone your project (replace with your repo)
-              # sudo -u ec2-user git clone https://github.com/your-username/your-airflow-project.git /home/ec2-user/airflow_project
               echo "User data script completed." > /home/ec2-user/user_data_status.txt
               EOF
 
