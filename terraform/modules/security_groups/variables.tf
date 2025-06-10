@@ -31,7 +31,17 @@ variable "local_ip_for_ssh" {
   type        = string
 }
 
+variable "local_ip_for_ssh_2" {
+  description = "Your IP address (CIDR format, e.g., 'x.x.x.x/32') for SSH access to EC2 instances. Set to '0.0.0.0/0' for open access (not recommended for SSH)."
+  type        = string
+}
+
 variable "local_ip_for_airflow_ui" {
+  description = "Your IP address (CIDR format, e.g., 'x.x.x.x/32') for accessing the Airflow UI. Set to '0.0.0.0/0' for public access (ensure Airflow itself is secured)."
+  type        = string
+}
+
+variable "local_ip_for_airflow_ui_2" {
   description = "Your IP address (CIDR format, e.g., 'x.x.x.x/32') for accessing the Airflow UI. Set to '0.0.0.0/0' for public access (ensure Airflow itself is secured)."
   type        = string
 }

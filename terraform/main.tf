@@ -57,7 +57,7 @@ module "iam_roles" {
   airflow_logs_s3_bucket_arn = module.s3.bronze_bucket_arn
 
   #secrets manager arns
-  airflow_ec2_role_secret_arns         = [module.secrets_manager.rds_master_password_secret_arn]
+  airflow_ec2_role_secret_arns         = [module.secrets_manager.rds_master_password_secret_arn, module.secrets_manager.airflow_admin_password_secret_arn]
   lambda_external_role_secret_arns     = [module.secrets_manager.noaa_api_key_secret_arn]
   terraform_execution_role_secret_arns = []
 }
@@ -75,6 +75,9 @@ module "security_groups" {
   local_ip_for_ssh         = var.user_ssh_ip
   local_ip_for_airflow_ui  = var.user_airflow_ui_ip
   local_ip_for_metabase_ui = var.user_metabase_ui_ip
+
+  local_ip_for_ssh_2        = var.user_ssh_ip_2
+  local_ip_for_airflow_ui_2 = var.user_airflow_ui_ip_2
 }
 
 
@@ -130,7 +133,13 @@ module "ec2_airflow" {
   public_subnet_id          = module.networking.public_subnets[0]
   airflow_ec2_sg_id         = module.security_groups.airflow_ec2_sg_id
   iam_instance_profile_name = module.iam_roles.airflow_ec2_instance_profile_name
-  # user_data_script = file("${path.root}/my_custom_airflow_setup.sh")
+  user_data_script          = file("${path.module}/../scripts/airflow_setup.sh")
+
+  depends_on = [
+    module.secrets_manager,
+    module.rds_airflow_db,
+    module.redshift_serverless
+  ]
 }
 
 
