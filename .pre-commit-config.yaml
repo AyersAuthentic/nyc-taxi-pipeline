@@ -32,4 +32,4 @@ repos:
     hooks:
       - id: editorconfig-checker
         alias: ec
-        exclude: '.*(\.drawio|\.drawio\.svg|\.png|\.jpg|\.jpeg|\.pdf|\.md)$'
+        exclude: '.*(\.drawio|\.drawio\.svg|\.png|\.jpg|\.jpeg|\.pdf|\.md|\.sh)$'

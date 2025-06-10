@@ -17,7 +17,7 @@ variable "lambda_external_role_secret_arns" {
   default     = []
 }
 
-// For Airflow EC2 role (specifically for RDS password)
+// For Airflow EC2 role
 variable "airflow_ec2_role_secret_arns" {
   description = "List of Secrets Manager secret ARNs for the Airflow EC2 role to access (e.g., RDS password)."
   type        = list(string)

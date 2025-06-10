@@ -1,7 +1,9 @@
 resource "random_password" "rds_password" {
-  length           = 20
-  special          = true
-  override_special = "!#$%&()*+,-.:;<=>?_~"
+  length  = 20
+  special = false
+  upper   = true
+  lower   = true
+  numeric = true
 }
 
 
@@ -22,6 +24,34 @@ resource "aws_secretsmanager_secret" "rds_master_password" {
 resource "aws_secretsmanager_secret_version" "rds_master_password_version" {
   secret_id     = aws_secretsmanager_secret.rds_master_password.id
   secret_string = random_password.rds_password.result
+}
+
+
+resource "random_password" "airflow_admin_password" {
+  length  = 20
+  special = false
+  upper   = true
+  lower   = true
+  numeric = true
+}
+
+
+resource "aws_secretsmanager_secret" "airflow_admin_password" {
+  name        = "${var.project_name}-${var.environment}-airflow-admin-password"
+  description = "Stores the admin password for the Airflow UI, managed by Terraform."
+
+  tags = merge(
+    var.tags,
+    {
+      Name          = "${var.project_name}-${var.environment}-airflow-admin-password"
+      SecretPurpose = "Airflow Admin Password"
+    }
+  )
+}
+
+resource "aws_secretsmanager_secret_version" "airflow_admin_password_version" {
+  secret_id     = aws_secretsmanager_secret.airflow_admin_password.id
+  secret_string = random_password.airflow_admin_password.result
 }
 
 
