@@ -4,10 +4,10 @@ data "archive_file" "nyc_taxi_ingestion_zip" {
   output_path = "${path.module}/nyc_taxi_ingestion_payload.zip"
 }
 
-data "archive_file" "lambda_zip" {
+data "archive_file" "noaa_weather_ingestion_zip" {
   type        = "zip"
-  source_file = "${path.module}/lambda_src/lambda_function.py"
-  output_path = "${path.module}/lambda_payload.zip"
+  source_dir  = "${path.module}/lambda_functions/noaa_weather_ingestion/package/"
+  output_path = "${path.module}/noaa_weather_ingestion_payload.zip"
 }
 
 
@@ -45,15 +45,19 @@ resource "aws_lambda_function" "noaa_weather_ingestion_lambda" {
   runtime       = var.lambda_runtime
   role          = var.lambda_execution_role_arn
 
-  filename         = data.archive_file.lambda_zip.output_path
-  source_code_hash = data.archive_file.lambda_zip.output_base64sha256
+  filename         = data.archive_file.noaa_weather_ingestion_zip.output_path
+  source_code_hash = data.archive_file.noaa_weather_ingestion_zip.output_base64sha256
 
   timeout     = var.lambda_timeout_seconds
   memory_size = var.lambda_memory_mb
 
+
   environment {
     variables = {
+      BRONZE_BUCKET_NAME      = var.bronze_bucket_name
+      NOAA_API_BASE_URL       = var.noaa_api_base_url
       NOAA_API_KEY_SECRET_ARN = var.noaa_api_key_secret_arn
+      HTTP_REQUEST_TIMEOUT    = var.http_request_timeout_seconds
     }
   }
 

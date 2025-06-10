@@ -60,6 +60,12 @@ variable "tlc_data_base_url" {
   default     = "https://d37ci6vzurychx.cloudfront.net/trip-data"
 }
 
+variable "noaa_api_base_url" {
+  description = "Base URL for the NOAA API."
+  type        = string
+  default     = "https://www.ncei.noaa.gov/cdo-web/api/v2"
+}
+
 variable "tags" {
   description = "A map of tags to assign to the Lambda functions."
   type        = map(string)
