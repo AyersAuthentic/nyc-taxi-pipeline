@@ -27,7 +27,7 @@ resource "aws_iam_role" "airflow_ec2_role" {
 resource "aws_iam_instance_profile" "airflow_ec2_instance_profile" {
   name = "${var.project_name}-InstanceProfile-Airflow-EC2-${var.environment}"
   role = aws_iam_role.airflow_ec2_role.name
-  tags = var.tags # Apply common tags to the instance profile itself
+  tags = var.tags
 }
 
 # --- SSM Managed Policy Attachment for Airflow EC2 Role ---
@@ -89,7 +89,7 @@ data "aws_iam_policy_document" "airflow_ec2_cloudwatch_policy_doc" {
       "logs:PutLogEvents",
       "logs:DescribeLogStreams"
     ]
-    # Scoped to allow Airflow EC2 to write to its own logs under the project/environment structure
+
     resources = ["arn:aws:logs:${var.aws_region}:${var.account_id}:log-group:/${var.project_name}/${var.environment}/ec2/airflow*:*"]
   }
 }
@@ -128,6 +128,31 @@ resource "aws_iam_role_policy_attachment" "airflow_ec2_secrets_manager_attach" {
   count      = local.enable_airflow_secrets_manager_access ? 1 : 0
   role       = aws_iam_role.airflow_ec2_role.name
   policy_arn = aws_iam_policy.airflow_ec2_secrets_manager_policy[0].arn
+}
+
+
+# --- RDS Describe Policy for Airflow EC2 ---
+data "aws_iam_policy_document" "airflow_ec2_rds_describe_policy_doc" {
+  statement {
+    sid    = "AllowRDSDescribe"
+    effect = "Allow"
+    actions = [
+      "rds:DescribeDBInstances",
+    ]
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_policy" "airflow_ec2_rds_describe_policy" {
+  name        = "${var.project_name}-AirflowEC2RDSDescribePolicy-${var.environment}"
+  description = "Allows Airflow EC2 to describe RDS instances to find the endpoint."
+  policy      = data.aws_iam_policy_document.airflow_ec2_rds_describe_policy_doc.json
+  tags        = var.tags
+}
+
+resource "aws_iam_role_policy_attachment" "airflow_ec2_rds_describe_attach" {
+  role       = aws_iam_role.airflow_ec2_role.name
+  policy_arn = aws_iam_policy.airflow_ec2_rds_describe_policy.arn
 }
 
 # --- Lambda Invoke Policy for Airflow EC2 (Conditional) ---

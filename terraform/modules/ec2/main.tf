@@ -46,8 +46,8 @@ resource "aws_instance" "airflow_ec2" {
               unzip awscliv2.zip
               sudo ./aws/install
               rm -rf awscliv2.zip aws
-              echo "User data script completed." > /home/ec2-user/user_data_status.txt
               EOF
+
 
   tags = merge(var.tags, {
     Name = "${var.project_name}-airflow-ec2-${var.environment}"
