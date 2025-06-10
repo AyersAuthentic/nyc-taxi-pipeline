@@ -43,6 +43,16 @@ variable "user_airflow_ui_ip" {
   type        = string
 }
 
+variable "user_airflow_ui_ip_2" {
+  description = "Local/Remote IP address (CIDR format, e.g., 'x.x.x.x/32') for accessing the Airflow UI. Set via terraform.tfvars."
+  type        = string
+}
+
+variable "user_ssh_ip_2" {
+  description = "Local/Remote IP address (CIDR format, e.g., 'x.x.x.x/32') for SSH access. Set via terraform.tfvars."
+  type        = string
+}
+
 variable "user_metabase_ui_ip" {
   description = "Local/Remote IP address (CIDR format, e.g., 'x.x.x.x/32') for accessing the Metabase UI. Set via terraform.tfvars."
   type        = string
@@ -67,7 +77,7 @@ variable "ec2_key_name" {
 variable "ec2_instance_type" {
   description = "EC2 instance type for Airflow (e.g., t3.micro, t4g.micro)."
   type        = string
-  default     = "t3.micro"
+  default     = "t3.small"
 }
 
 

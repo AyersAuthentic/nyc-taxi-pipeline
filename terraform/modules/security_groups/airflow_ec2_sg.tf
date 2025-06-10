@@ -24,6 +24,22 @@ resource "aws_security_group" "airflow_ec2_sg" {
     cidr_blocks = [var.local_ip_for_airflow_ui]
   }
 
+  ingress {
+    description = "Allow SSH from My IP"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = [var.local_ip_for_ssh]
+  }
+
+  ingress {
+    description = "Allow Airflow UI from My IP"
+    from_port   = 8080
+    to_port     = 8080
+    protocol    = "tcp"
+    cidr_blocks = [var.local_ip_for_airflow_ui]
+  }
+
 
   egress {
     description = "Allow all outbound IPv4 traffic"
