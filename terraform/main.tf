@@ -57,7 +57,7 @@ module "iam_roles" {
   airflow_logs_s3_bucket_arn = module.s3.bronze_bucket_arn
 
   #secrets manager arns
-  airflow_ec2_role_secret_arns         = [module.secrets_manager.rds_master_password_secret_arn, module.secrets_manager.airflow_admin_password_secret_arn]
+  airflow_ec2_role_secret_arns         = [module.secrets_manager.rds_master_password_secret_arn, module.secrets_manager.airflow_admin_password_secret_arn, module.secrets_manager.redshift_admin_password_secret_arn]
   lambda_external_role_secret_arns     = [module.secrets_manager.noaa_api_key_secret_arn]
   terraform_execution_role_secret_arns = []
 }
@@ -115,6 +115,7 @@ module "redshift_serverless" {
   admin_user_password_secret_arn = module.secrets_manager.redshift_admin_password_secret_arn
   redshift_iam_role_arn          = module.iam_roles.redshift_serverless_role_arn
   private_subnet_ids             = module.networking.private_subnets
+  public_subnet_ids              = module.networking.public_subnets
   redshift_security_group_id     = module.security_groups.redshift_vpc_sg_id
   admin_user_password            = module.secrets_manager.redshift_admin_password_value
 
