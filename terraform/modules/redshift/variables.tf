@@ -49,6 +49,11 @@ variable "private_subnet_ids" {
   type        = list(string)
 }
 
+variable "public_subnet_ids" {
+  description = "List of public subnet IDs for the Redshift workgroup ENIs."
+  type        = list(string)
+}
+
 variable "redshift_security_group_id" {
   description = "ID of the security group for Redshift Serverless (SG_Redshift_VPC)."
   type        = string
