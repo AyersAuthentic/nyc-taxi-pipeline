@@ -9,14 +9,6 @@ resource "aws_security_group" "redshift_vpc_sg" {
   vpc_id      = var.vpc_id
 
 
-  ingress {
-    description = "Direct Redshift access from my admin IP"
-    from_port   = 5439
-    to_port     = 5439
-    protocol    = "tcp"
-    cidr_blocks = [var.local_ip_for_ssh]
-  }
-
   egress {
     description     = "Allow outbound HTTPS to S3 via S3 Gateway Endpoint"
     from_port       = 443 # HTTPS
@@ -32,6 +24,16 @@ resource "aws_security_group" "redshift_vpc_sg" {
       Name = "${var.project_name}-${var.environment}-redshift-vpc-sg"
     }
   )
+}
+
+resource "aws_security_group_rule" "redshift_ingress_from_my_ip" {
+  type              = "ingress"
+  security_group_id = aws_security_group.redshift_vpc_sg.id
+  from_port         = 5439
+  to_port           = 5439
+  protocol          = "tcp"
+  cidr_blocks       = [var.local_ip_for_ssh]
+  description       = "Direct Redshift access from my admin IP"
 }
 
 resource "aws_security_group_rule" "redshift_ingress_from_airflow_ec2" {

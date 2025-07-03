@@ -15,7 +15,7 @@ resource "aws_redshiftserverless_workgroup" "default" {
   namespace_name = aws_redshiftserverless_namespace.default.namespace_name
   base_capacity  = var.base_capacity
 
-  subnet_ids         = var.private_subnet_ids
+  subnet_ids         = var.public_subnet_ids
   security_group_ids = [var.redshift_security_group_id]
 
   publicly_accessible = true
