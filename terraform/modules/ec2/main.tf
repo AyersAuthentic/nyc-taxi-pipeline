@@ -28,6 +28,10 @@ resource "aws_instance" "airflow_ec2" {
 
   associate_public_ip_address = true
 
+  lifecycle {
+    ignore_changes = [ami]
+  }
+
 
   user_data = var.user_data_script != null ? var.user_data_script : <<-EOF
               #!/bin/bash
