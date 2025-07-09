@@ -5,3 +5,4 @@ sources:
     schema: raw
     tables:
       - name: yellow_tripdata
+      - name: noaa_weather_data
