@@ -19,3 +19,5 @@ CREATE TABLE IF NOT EXISTS "raw".yellow_tripdata (
     congestion_surcharge    DOUBLE PRECISION,
     airport_fee             DOUBLE PRECISION
 );
+
+
