@@ -38,10 +38,49 @@ def get_noaa_api_token(secret_arn):
         raise e
 
 
+def transform_noaa_response_for_redshift(noaa_json_response, station_id, dataset_id):
+    """
+    Transform NOAA API response to Redshift-friendly format.
+    Creates two files: one with just the results array, and one with full response for archival.
+    """
+    try:
+        noaa_data = json.loads(noaa_json_response)
+
+        # Extract results array for Redshift loading
+        results = noaa_data.get("results", [])
+
+        # Add metadata fields to each record for better data lineage
+        enriched_results = []
+        for record in results:
+            enriched_record = {
+                **record,
+                "ingestion_timestamp": "{{ current_timestamp }}",  # Will be replaced in SQL
+                "source_dataset": dataset_id,
+                "api_response_metadata": {
+                    "offset": noaa_data.get("metadata", {}).get("resultset", {}).get("offset"),
+                    "count": noaa_data.get("metadata", {}).get("resultset", {}).get("count"),
+                    "limit": noaa_data.get("metadata", {}).get("resultset", {}).get("limit"),
+                },
+            }
+            enriched_results.append(enriched_record)
+
+        # Convert to newline-delimited JSON (NDJSON) for optimal Redshift loading
+        ndjson_data = "\n".join(json.dumps(record) for record in enriched_results)
+
+        return ndjson_data, noaa_data
+
+    except json.JSONDecodeError as e:
+        logger.error(f"Failed to parse NOAA API response as JSON: {e}")
+        raise
+    except Exception as e:
+        logger.error(f"Error transforming NOAA response: {e}")
+        raise
+
+
 def lambda_handler(event, context):
     """
     Fetches weather data from NOAA API for a given station, data types, and date range,
-    then stores the raw JSON response in S3 Bronze.
+    then stores both raw and transformed JSON responses in S3 Bronze.
     """
     try:
         logger.info(f"AWS Request ID: {context.aws_request_id} - Received event: {event}")
@@ -113,29 +152,54 @@ def lambda_handler(event, context):
             logger.error(error_msg)
             return {"statusCode": 400, "body": json.dumps({"error": error_msg})}
 
-        s3_file_name = f"{start_date}_to_{end_date}_data.json"
-        destination_s3_key = (
-            f"noaa-weather/dataset={dataset_id}/station_id={station_id}/"
-            f"year={year}/month={month}/{s3_file_name}"
+        # Transform data for Redshift
+        transformed_data, original_data = transform_noaa_response_for_redshift(
+            weather_data_json, station_id, dataset_id
         )
 
-        logger.info(f"Uploading data to s3://{bronze_bucket_name}/{destination_s3_key}")
+        base_path = (
+            f"noaa-weather/dataset={dataset_id}/station_id={station_id}/year={year}/month={month}"
+        )
+        file_prefix = f"{start_date}_to_{end_date}"
+
+        # Upload transformed data for Redshift loading (NDJSON format)
+        redshift_s3_key = f"{base_path}/{file_prefix}_redshift.ndjson"
+        logger.info(f"Uploading transformed data to s3://{bronze_bucket_name}/{redshift_s3_key}")
 
         s3_client.put_object(
             Bucket=bronze_bucket_name,
-            Key=destination_s3_key,
+            Key=redshift_s3_key,
+            Body=transformed_data,
+            ContentType="application/x-ndjson",
+        )
+
+        # Upload original response for archival/debugging
+        original_s3_key = f"{base_path}/{file_prefix}_original.json"
+        logger.info(f"Uploading original data to s3://{bronze_bucket_name}/{original_s3_key}")
+
+        s3_client.put_object(
+            Bucket=bronze_bucket_name,
+            Key=original_s3_key,
             Body=weather_data_json,
             ContentType="application/json",
         )
 
         success_msg = (
-            f"Successfully fetched NOAA data and stored in S3: "
-            f"s3://{bronze_bucket_name}/{destination_s3_key}"
+            "Successfully fetched NOAA data and stored in S3. "
+            f"Redshift file: s3://{bronze_bucket_name}/{redshift_s3_key}"
         )
         logger.info(success_msg)
+
         return {
             "statusCode": 200,
-            "body": json.dumps({"message": success_msg, "s3_key": destination_s3_key}),
+            "body": json.dumps(
+                {
+                    "message": success_msg,
+                    "redshift_s3_key": redshift_s3_key,
+                    "original_s3_key": original_s3_key,
+                    "records_processed": len(original_data.get("results", [])),
+                }
+            ),
         }
 
     except requests.exceptions.HTTPError as http_err:
@@ -161,8 +225,8 @@ def lambda_handler(event, context):
         }
     except Exception as e:
         error_msg = (
-            f"Unhandled error during processing for "
-            f"station {station_id}, dates {start_date}-{end_date}: {str(e)}"
+            "Unhandled error during processing for station {station_id}, "
+            f"dates {start_date}-{end_date}: {str(e)}"
         )
         logger.error(error_msg, exc_info=True)
         return {
