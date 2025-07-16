@@ -53,8 +53,8 @@ module "iam_roles" {
   github_org_name  = var.github_org_name
   github_repo_name = var.github_repo_name
 
-  airflow_dags_s3_bucket_arn = module.s3.bronze_bucket_arn
-  airflow_logs_s3_bucket_arn = module.s3.bronze_bucket_arn
+  airflow_dags_s3_bucket_arn = module.s3.airflow_dags_s3_bucket_arn
+  airflow_logs_s3_bucket_arn = module.s3.airflow_logs_s3_bucket_arn
 
   #secrets manager arns
   airflow_ec2_role_secret_arns         = [module.secrets_manager.rds_master_password_secret_arn, module.secrets_manager.airflow_admin_password_secret_arn, module.secrets_manager.redshift_admin_password_secret_arn]
