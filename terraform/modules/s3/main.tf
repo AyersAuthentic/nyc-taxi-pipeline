@@ -32,3 +32,38 @@ resource "aws_s3_bucket_public_access_block" "this" {
   ignore_public_acls      = true
   restrict_public_buckets = true
 }
+
+
+
+resource "aws_s3_bucket" "airflow_dags" {
+  bucket        = "${var.bucket_prefix}-dags-${var.account_id}"
+  force_destroy = true
+
+  tags = merge(var.tags, { "Purpose" = "Airflow DAGs" })
+}
+
+resource "aws_s3_bucket_public_access_block" "airflow_dags" {
+  bucket                  = aws_s3_bucket.airflow_dags.id
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+
+
+resource "aws_s3_bucket" "airflow_logs" {
+  bucket        = "${var.bucket_prefix}-logs-${var.account_id}"
+  force_destroy = true
+
+  tags = merge(var.tags, { "Purpose" = "Airflow Logs" })
+}
+
+resource "aws_s3_bucket_public_access_block" "airflow_logs" {
+  bucket                  = aws_s3_bucket.airflow_logs.id
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
