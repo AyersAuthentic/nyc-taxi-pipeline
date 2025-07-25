@@ -50,9 +50,5 @@ with DAG(
         task_id="transform_data_with_dbt",
         bash_command=DBT_BUILD_CMD,
     )
-    transform_data_with_dbt = BashOperator(
-        task_id="transform_data_with_dbt",
-        bash_command=DBT_BUILD_CMD,
-    )
 
     [ingest_weather_data, ingest_taxi_data] >> transform_data_with_dbt
