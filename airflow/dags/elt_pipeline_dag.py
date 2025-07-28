@@ -9,6 +9,7 @@ AWS_LAMBDA_FUNCTION_TAXI = "nyc-taxi-pipeline-nyc-taxi-ingest-dev"
 AWS_LAMBDA_FUNCTION_WEATHER = "nyc-taxi-pipeline-noaa-weather-ingest-dev"
 DBT_PROJECT_DIR = "/home/ec2-user/app/dbt_nyc_taxi"  # Path to your dbt project on the EC2
 VENV_ACTIVATE_CMD = "source /home/ec2-user/airflow_project/venv/bin/activate"
+AWS_REGION = "us-east-1"
 
 
 DBT_BUILD_CMD = f"cd {DBT_PROJECT_DIR} && {VENV_ACTIVATE_CMD} && dbt build"
@@ -38,12 +39,16 @@ with DAG(
         task_id="ingest_noaa_weather_data",
         function_name=AWS_LAMBDA_FUNCTION_WEATHER,
         payload='{"start_date": "2024-02-01", "end_date": "2024-02-31"}',
+        aws_conn_id=None,
+        region_name=AWS_REGION,
     )
 
     ingest_taxi_data = LambdaInvokeFunctionOperator(
         task_id="ingest_nyc_taxi_data",
         function_name=AWS_LAMBDA_FUNCTION_TAXI,
         payload='{"year": "2024", "month": "2", "taxi_type": "yellow"}',
+        aws_conn_id=None,
+        region_name=AWS_REGION,
     )
 
     transform_data_with_dbt = BashOperator(
