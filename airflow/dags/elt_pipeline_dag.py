@@ -14,12 +14,11 @@ AWS_REGION = "us-east-1"
 
 DBT_BUILD_CMD = (
     "source /home/ec2-user/.dbt/dbt_env.sh && "
-    "cd {DBT_PROJECT_DIR} && "
-    "source {VENV_ACTIVATE_CMD} && "
-    "dbt build"
+    f"cd {DBT_PROJECT_DIR} && "
+    f"{VENV_ACTIVATE_CMD} && "
+    f"dbt deps && "
+    f"dbt build"
 )
-
-DBT_BUILD_CMD = f"cd {DBT_PROJECT_DIR} && {VENV_ACTIVATE_CMD} && dbt build"
 
 
 with DAG(
