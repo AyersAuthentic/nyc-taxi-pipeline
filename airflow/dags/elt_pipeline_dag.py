@@ -19,8 +19,6 @@ DBT_BUILD_CMD = (
     "dbt build"
 )
 
-DBT_BUILD_CMD = f"cd {DBT_PROJECT_DIR} && {VENV_ACTIVATE_CMD} && dbt build"
-
 
 with DAG(
     dag_id="nyc_taxi_elt_pipeline",
