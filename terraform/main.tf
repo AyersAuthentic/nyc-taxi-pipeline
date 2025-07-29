@@ -62,7 +62,7 @@ module "iam_roles" {
   terraform_execution_role_secret_arns = []
   ingestion_lambda_function_arns       = [module.lambda_functions.nyc_taxi_ingestion_lambda_arn, module.lambda_functions.noaa_weather_ingestion_lambda_arn]
 
-  redshift_serverless_workgroup_arn = module.redshift.workgroup_arn
+  redshift_serverless_workgroup_arn = module.redshift_serverless.workgroup_arn
 }
 
 module "security_groups" {
