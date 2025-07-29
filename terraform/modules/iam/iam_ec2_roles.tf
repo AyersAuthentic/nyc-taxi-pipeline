@@ -212,3 +212,29 @@ resource "aws_iam_role_policy_attachment" "airflow_ec2_redshift_attach" {
   role       = aws_iam_role.airflow_ec2_role.name
   policy_arn = aws_iam_policy.airflow_ec2_redshift_policy[0].arn
 }
+
+# --- Redshift Serverless Get Workgroup Policy for Airflow EC2 ---
+data "aws_iam_policy_document" "airflow_ec2_redshift_serverless_get_policy_doc" {
+  statement {
+    sid    = "AllowRedshiftServerlessGetWorkgroup"
+    effect = "Allow"
+    actions = [
+      "redshift-serverless:GetWorkgroup",
+    ]
+
+    resources = [var.redshift_serverless_workgroup_arn]
+  }
+}
+
+resource "aws_iam_policy" "airflow_ec2_redshift_serverless_get_policy" {
+  name        = "${var.project_name}-AirflowEC2RedshiftGetPolicy-${var.environment}"
+  description = "Allows Airflow EC2 to get Redshift Serverless workgroup details."
+  policy      = data.aws_iam_policy_document.airflow_ec2_redshift_serverless_get_policy_doc.json
+  tags        = var.tags
+}
+
+resource "aws_iam_role_policy_attachment" "airflow_ec2_redshift_serverless_get_attach" {
+  role       = aws_iam_role.airflow_ec2_role.name
+  policy_arn = aws_iam_policy.airflow_ec2_redshift_serverless_get_policy.arn
+}
+
