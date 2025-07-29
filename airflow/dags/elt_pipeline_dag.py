@@ -12,6 +12,13 @@ VENV_ACTIVATE_CMD = "source /home/ec2-user/airflow_project/venv/bin/activate"
 AWS_REGION = "us-east-1"
 
 
+DBT_BUILD_CMD = (
+    "source /home/ec2-user/.dbt/dbt_env.sh && "
+    "cd {DBT_PROJECT_DIR} && "
+    "source {VENV_ACTIVATE_CMD} && "
+    "dbt build"
+)
+
 DBT_BUILD_CMD = f"cd {DBT_PROJECT_DIR} && {VENV_ACTIVATE_CMD} && dbt build"
 
 
