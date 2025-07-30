@@ -62,7 +62,6 @@ Thumbs.db
 *.ipynb_checkpoints
 /data/
 *.parquet
-*.csv
 *.zip
 
 –– Secrets (pattern) ––
