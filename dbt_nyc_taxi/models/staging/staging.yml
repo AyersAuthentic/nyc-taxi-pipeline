@@ -1,0 +1,60 @@
+version: 2
+
+models:
+  - name: stg_yellow_tripdata
+    description: Cleaned and transformed NYC Yellow Taxi trip data with standardized data types and surrogate keys
+    columns:
+      - name: tripid
+        description: Unique identifier for each trip generated from vendor ID and pickup datetime
+      - name: vendor_id
+        description: A code indicating the TPEP provider that provided the record
+      - name: ratecode_id
+        description: The final rate code in effect at the end of the trip
+      - name: pickup_location_id
+        description: TLC Taxi Zone in which the taximeter was engaged
+      - name: dropoff_location_id
+        description: TLC Taxi Zone in which the taximeter was disengaged
+      - name: pickup_datetime
+        description: The date and time when the meter was engaged
+      - name: dropoff_datetime
+        description: The date and time when the meter was disengaged
+      - name: store_and_fwd_flag
+        description: This flag indicates whether the trip record was held in vehicle memory before sending to the vendor
+      - name: passenger_count
+        description: The number of passengers in the vehicle
+      - name: trip_distance
+        description: The elapsed trip distance in miles reported by the taximeter
+      - name: payment_type
+        description: A numeric code signifying how the passenger paid for the trip
+      - name: fare_amount
+        description: The time-and-distance fare calculated by the meter
+      - name: extra
+        description: Miscellaneous extras and surcharges
+      - name: mta_tax
+        description: $0.50 MTA tax that is automatically triggered based on the metered rate in use
+      - name: tip_amount
+        description: Tip amount – This field is automatically populated for credit card tips
+      - name: tolls_amount
+        description: Total amount of all tolls paid in trip
+      - name: improvement_surcharge
+        description: $0.30 improvement surcharge assessed trips at the flag drop
+      - name: total_amount
+        description: The total amount charged to passengers
+
+  - name: stg_noaa_weather_data
+    description: Cleaned and transformed NOAA weather data with standardized column names and ingestion timestamp
+    columns:
+      - name: station_id
+        description: Weather station identifier
+      - name: measurement_type
+        description: Type of weather measurement (PRCP, TMAX, TMIN, TAVG)
+      - name: measurement_value
+        description: Weather measurement value
+      - name: attributes
+        description: Additional measurement attributes
+      - name: source_dataset
+        description: Source dataset identifier
+      - name: observation_date
+        description: Date of the weather observation
+      - name: ingestion_timestamp
+        description: Timestamp when the record was ingested into the staging table

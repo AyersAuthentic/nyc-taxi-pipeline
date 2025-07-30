@@ -1,0 +1,118 @@
+version: 2
+
+models:
+  - name: dim_datetime
+    description: Dimension table containing datetime attributes extracted from trip pickup times
+    columns:
+      - name: datetime_id
+        description: Unique identifier for each datetime generated from pickup datetime
+      - name: pickup_datetime
+        description: The original pickup datetime
+      - name: pickup_year
+        description: Year extracted from pickup datetime
+      - name: pickup_month
+        description: Month extracted from pickup datetime
+      - name: pickup_day
+        description: Day extracted from pickup datetime
+      - name: pickup_hour
+        description: Hour extracted from pickup datetime
+      - name: pickup_minute
+        description: Minute extracted from pickup datetime
+      - name: pickup_day_of_week
+        description: Day of week extracted from pickup datetime
+
+  - name: dim_weather
+    description: Dimension table containing daily weather aggregated from NOAA weather measurements
+    columns:
+      - name: observation_date
+        description: Date of the weather observation
+      - name: prcp
+        description: Daily precipitation measurement
+      - name: tmax
+        description: Daily maximum temperature
+      - name: tmin
+        description: Daily minimum temperature
+      - name: tavg
+        description: Daily average temperature
+
+  - name: dim_zones
+    description: Dimension table containing NYC taxi zone information from the taxi zone lookup
+    columns:
+      - name: location_id
+        description: Unique identifier for each taxi zone location
+      - name: borough
+        description: NYC borough name
+      - name: zone
+        description: Taxi zone name
+      - name: service_zone
+        description: Service zone classification (Yellow, Green, or EWR)
+
+  - name: fct_trips
+    description: Fact table containing enriched trip data with zone and weather information
+    columns:
+      - name: tripid
+        description: Unique identifier for each trip
+      - name: vendor_id
+        description: TPEP provider code
+      - name: ratecode_id
+        description: Rate code in effect at end of trip
+      - name: payment_type
+        description: Payment method code
+      - name: pickup_location_id
+        description: Pickup taxi zone ID
+      - name: pickup_borough
+        description: Pickup borough name
+      - name: pickup_zone
+        description: Pickup zone name
+      - name: dropoff_location_id
+        description: Dropoff taxi zone ID
+      - name: dropoff_borough
+        description: Dropoff borough name
+      - name: dropoff_zone
+        description: Dropoff zone name
+      - name: pickup_datetime
+        description: Trip pickup datetime
+      - name: dropoff_datetime
+        description: Trip dropoff datetime
+      - name: store_and_fwd_flag
+        description: Store and forward flag
+      - name: passenger_count
+        description: Number of passengers
+      - name: trip_distance
+        description: Trip distance in miles
+      - name: trip_duration_minutes
+        description: Calculated trip duration in minutes
+      - name: fare_amount
+        description: Metered fare amount
+      - name: extra
+        description: Extra charges and surcharges
+      - name: mta_tax
+        description: MTA tax amount
+      - name: tip_amount
+        description: Tip amount
+      - name: tolls_amount
+        description: Tolls paid during trip
+      - name: improvement_surcharge
+        description: Improvement surcharge amount
+      - name: total_amount
+        description: Total trip cost
+      - name: precipitation
+        description: Daily precipitation for trip date
+      - name: average_temp
+        description: Daily average temperature for trip date
+      - name: max_temp
+        description: Daily maximum temperature for trip date
+      - name: min_temp
+        description: Daily minimum temperature for trip date
+
+  - name: kpi_trip_duration_by_weather
+    description: KPI table analyzing median trip duration by borough and precipitation category
+    columns:
+      - name: pickup_borough
+        description: Pickup borough name
+      - name: dropoff_borough
+        description: Dropoff borough name
+      - name: precipitation_category
+        description: Categorized precipitation level (No Rain, Light Rain, Moderate Rain, Heavy Rain)
+      - name: median_trip_duration
+        description: Median trip duration in minutes for the given borough pair and precipitation category
