@@ -4,7 +4,7 @@ import pendulum
 from airflow.models.dag import DAG
 from airflow.operators.bash import BashOperator
 from airflow.providers.amazon.aws.operators.lambda_function import LambdaInvokeFunctionOperator
-from airflow.providers.amazon.aws.operators.redshift_sql import RedshiftSQLOperator
+from airflow.providers.common.sql.operators.sql import SQLExecuteQueryOperator
 
 # --- Best Practices: Define Variables ---
 AWS_REGION = "us-east-1"
@@ -93,14 +93,14 @@ with DAG(
     )
 
     # --- New Loading Tasks ---
-    load_weather_data_to_redshift = RedshiftSQLOperator(
+    load_weather_data_to_redshift = SQLExecuteQueryOperator(
         task_id="load_weather_data_to_redshift",
         sql=COPY_WEATHER_SQL,
-        redshift_conn_id=REDSHIFT_CONN_ID,
+        conn_id=REDSHIFT_CONN_ID,
     )
 
-    load_taxi_data_to_redshift = RedshiftSQLOperator(
-        task_id="load_taxi_data_to_redshift", sql=COPY_TAXI_SQL, redshift_conn_id=REDSHIFT_CONN_ID
+    load_taxi_data_to_redshift = SQLExecuteQueryOperator(
+        task_id="load_taxi_data_to_redshift", sql=COPY_TAXI_SQL, conn_id=REDSHIFT_CONN_ID
     )
 
     # --- Transformation Task ---
