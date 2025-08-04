@@ -71,12 +71,8 @@ def lambda_handler(event, context):
         logger.info(success_msg)
         return {
             "statusCode": 200,
-            "body": json.dumps(
-                {
-                    "message": success_msg,
-                    "destination_key": destination_s3_key,
-                }
-            ),
+            "message": success_msg,
+            "destination_key": destination_s3_key,
         }
 
     except requests.exceptions.HTTPError as http_err:
@@ -88,26 +84,19 @@ def lambda_handler(event, context):
             logger.warning(error_msg)
             return {
                 "statusCode": 404,
-                "body": json.dumps(
-                    {"message": error_msg, "status": "file_not_found_at_source_url"}
-                ),
+                "body": error_msg,
             }
         else:
             log_http_error_msg = f"HTTP error during download from {source_url}: {str(http_err)}"
             logger.error(log_http_error_msg, exc_info=True)
             return {
                 "statusCode": 502,
-                "body": json.dumps(
-                    {
-                        "error": f"HTTP error: {str(http_err)}",
-                        "details": str(http_err.response.text[:500]),
-                    }
-                ),
+                "body": error_msg,
             }
     except Exception as e:
         error_msg = f"Unhandled error during processing: {str(e)}"
         logger.error(error_msg, exc_info=True)
         return {
             "statusCode": 500,
-            "body": json.dumps({"error": error_msg, "details": str(e)}),
+            "body": error_msg,
         }
