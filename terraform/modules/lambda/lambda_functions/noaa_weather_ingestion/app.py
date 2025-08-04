@@ -192,14 +192,10 @@ def lambda_handler(event, context):
 
         return {
             "statusCode": 200,
-            "body": json.dumps(
-                {
-                    "message": success_msg,
-                    "redshift_s3_key": redshift_s3_key,
-                    "original_s3_key": original_s3_key,
-                    "records_processed": len(original_data.get("results", [])),
-                }
-            ),
+            "message": success_msg,
+            "redshift_s3_key": redshift_s3_key,
+            "original_s3_key": original_s3_key,
+            "records_processed": len(original_data.get("results", [])),
         }
 
     except requests.exceptions.HTTPError as http_err:
@@ -221,7 +217,7 @@ def lambda_handler(event, context):
 
         return {
             "statusCode": (error_code if error_code >= 400 else 502),
-            "body": json.dumps(noaa_error_body),
+            "body": noaa_error_body,
         }
     except Exception as e:
         error_msg = (
@@ -231,5 +227,5 @@ def lambda_handler(event, context):
         logger.error(error_msg, exc_info=True)
         return {
             "statusCode": 500,
-            "body": json.dumps({"error": "Internal server error", "details": str(e)}),
+            "body": error_msg,
         }
