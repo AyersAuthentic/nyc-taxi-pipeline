@@ -6,15 +6,14 @@ from airflow.operators.bash import BashOperator
 from airflow.providers.amazon.aws.operators.lambda_function import LambdaInvokeFunctionOperator
 from airflow.providers.common.sql.operators.sql import SQLExecuteQueryOperator
 
-# --- Best Practices: Define Variables ---
 AWS_REGION = "us-east-1"
-AWS_CONN_ID = "aws_default"  # Airflow connection for Redshift
-REDSHIFT_CONN_ID = "redshift_default"  # Airflow connection for Redshift
+AWS_CONN_ID = "aws_default"
+REDSHIFT_CONN_ID = "redshift_default"
 
 AWS_LAMBDA_FUNCTION_TAXI = "nyc-taxi-pipeline-nyc-taxi-ingest-dev"
 AWS_LAMBDA_FUNCTION_WEATHER = "nyc-taxi-pipeline-noaa-weather-ingest-dev"
 
-DBT_PROJECT_DIR = "/home/ec2-user/app/dbt_nyc_taxi"  # Path to your dbt project on the EC2
+DBT_PROJECT_DIR = "/home/ec2-user/app/dbt_nyc_taxi"
 VENV_ACTIVATE_CMD = "source /home/ec2-user/airflow_project/venv/bin/activate"
 DBT_COMMAND = (
     f"source /home/ec2-user/.dbt/dbt_env.sh && "
@@ -24,17 +23,16 @@ DBT_COMMAND = (
 )
 
 # --- SQL COPY Command Templates ---
-# We use Jinja templating to dynamically insert the S3 key from the Lambda output (XCom)
 COPY_TAXI_SQL = """
     COPY "raw".yellow_tripdata
-    FROM '{{ task_instance.xcom_pull(task_ids='ingest_nyc_taxi_data', key='return_value')['s3_key'] }}'
+    FROM '{{ task_instance.xcom_pull(task_ids='ingest_nyc_taxi_data')['s3_key'] }}'
     IAM_ROLE 'arn:aws:iam::825088006006:role/nyc-taxi-pipeline-Role-Redshift-Serverless-dev'
     FORMAT AS PARQUET;
 """
 
 COPY_WEATHER_SQL = """
     COPY "raw".noaa_weather_data
-    FROM '{{ task_instance.xcom_pull(task_ids='ingest_noaa_weather_data', key='return_value')['redshift_s3_key'] }}'
+    FROM '{{ task_instance.xcom_pull(task_ids='ingest_noaa_weather_data')['redshift_s3_key'] }}'
     IAM_ROLE 'arn:aws:iam::825088006006:role/nyc-taxi-pipeline-Role-Redshift-Serverless-dev'
     FORMAT AS JSON 'auto';
 """
@@ -80,7 +78,7 @@ with DAG(
         payload='{"start_date": "2024-01-01", "end_date": "2024-01-31"}',
         aws_conn_id=AWS_CONN_ID,
         region_name=AWS_REGION,
-        do_xcom_push=True,  # This tells the operator to push its return value to XComs
+        do_xcom_push=True,
     )
 
     ingest_taxi_data = LambdaInvokeFunctionOperator(
@@ -89,7 +87,7 @@ with DAG(
         payload='{"year": "2024", "month": "1"}',
         aws_conn_id=AWS_CONN_ID,
         region_name=AWS_REGION,
-        do_xcom_push=True,  # This tells the operator to push its return value to XComs
+        do_xcom_push=True,
     )
 
     # --- New Loading Tasks ---
