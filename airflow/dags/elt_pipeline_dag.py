@@ -25,14 +25,14 @@ DBT_COMMAND = (
 # --- SQL COPY Command Templates ---
 COPY_TAXI_SQL = """
     COPY "raw".yellow_tripdata
-    FROM '{{ (task_instance.xcom_pull(task_ids='ingest_nyc_taxi_data') | from_json)['s3_uri'] }}'
+    FROM '{{ task_instance.xcom_pull(task_ids='ingest_nyc_taxi_data')['s3_uri'] }}'
     IAM_ROLE 'arn:aws:iam::825088006006:role/nyc-taxi-pipeline-Role-Redshift-Serverless-dev'
     FORMAT AS PARQUET;
 """
 
 COPY_WEATHER_SQL = """
     COPY "raw".noaa_weather_data
-    FROM '{{ (task_instance.xcom_pull(task_ids='ingest_noaa_weather_data') | from_json)['s3_uri'] }}'
+    FROM '{{ task_instance.xcom_pull(task_ids='ingest_noaa_weather_data')['s3_uri'] }}'
     IAM_ROLE 'arn:aws:iam::825088006006:role/nyc-taxi-pipeline-Role-Redshift-Serverless-dev'
     FORMAT AS JSON 'auto';
 """
@@ -44,6 +44,7 @@ with DAG(
     start_date=pendulum.datetime(2024, 1, 1, tz="UTC"),
     catchup=False,
     is_paused_upon_creation=True,
+    render_template_as_native_obj=True,
     tags=["taxi_data", "dbt", "elt"],
     doc_md="""
     ### NYC Taxi ELT Pipeline
