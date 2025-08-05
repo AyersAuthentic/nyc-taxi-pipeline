@@ -220,6 +220,7 @@ data "aws_iam_policy_document" "airflow_ec2_redshift_serverless_get_policy_doc" 
     effect = "Allow"
     actions = [
       "redshift-serverless:GetWorkgroup",
+      "redshift-serverless:GetCredentials"
     ]
 
     resources = [var.redshift_serverless_workgroup_arn]
@@ -228,7 +229,7 @@ data "aws_iam_policy_document" "airflow_ec2_redshift_serverless_get_policy_doc" 
 
 resource "aws_iam_policy" "airflow_ec2_redshift_serverless_get_policy" {
   name        = "${var.project_name}-AirflowEC2RedshiftGetPolicy-${var.environment}"
-  description = "Allows Airflow EC2 to get Redshift Serverless workgroup details."
+  description = "Allows Airflow EC2 to get details and credentials for a Redshift Serverless workgroup."
   policy      = data.aws_iam_policy_document.airflow_ec2_redshift_serverless_get_policy_doc.json
   tags        = var.tags
 }
