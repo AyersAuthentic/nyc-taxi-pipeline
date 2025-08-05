@@ -79,8 +79,8 @@ with DAG(
                 "dataset_id": "GHCND",
                 "station_id": "GHCND:USW00094728",
                 "datatype_ids": ["PRCP", "TEMP", "TAVG", "TMAX", "TMIN", "WT16", "WT14"],
-                "start_date": "2024-01-01",
-                "end_date": "2024-01-05",
+                "start_date": "2024-03-01",
+                "end_date": "2024-03-05",
                 "units": "standard"
             }""",
         aws_conn_id=AWS_CONN_ID,
@@ -91,7 +91,7 @@ with DAG(
     ingest_taxi_data = LambdaInvokeFunctionOperator(
         task_id="ingest_nyc_taxi_data",
         function_name=AWS_LAMBDA_FUNCTION_TAXI,
-        payload='{"year": "2024", "month": "1"}',
+        payload='{"year": "2024", "month": "3"}',
         aws_conn_id=AWS_CONN_ID,
         region_name=AWS_REGION,
         do_xcom_push=True,
