@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 import pendulum
 from airflow.models.dag import DAG
 from airflow.operators.bash import BashOperator
@@ -76,10 +78,15 @@ with DAG(
     ingest_weather_data = LambdaInvokeFunctionOperator(
         task_id="ingest_noaa_weather_data",
         function_name=AWS_LAMBDA_FUNCTION_WEATHER,
-        payload=(
-            '{"dataset_id": "GHCND", "station_id": "GHCND:USW00094728", '
-            '"datatype_ids": ["PRCP", "TEMP", "TAVG", "TMAX", "TMIN", "WT16", "WT14"], '
-            '"start_date": "2024-03-01", "end_date": "2024-03-05", "units": "standard"}'
+        payload=json.dumps(
+            {
+                "dataset_id": "GHCND",
+                "station_id": "GHCND:USW00094728",
+                "datatype_ids": ["PRCP", "TEMP", "TAVG", "TMAX", "TMIN", "WT16", "WT14"],
+                "start_date": "2024-03-01",
+                "end_date": "2024-03-05",
+                "units": "standard",
+            }
         ),
         aws_conn_id=AWS_CONN_ID,
         region_name=AWS_REGION,
@@ -89,7 +96,7 @@ with DAG(
     ingest_taxi_data = LambdaInvokeFunctionOperator(
         task_id="ingest_nyc_taxi_data",
         function_name=AWS_LAMBDA_FUNCTION_TAXI,
-        payload='{"year": "2024", "month": "3"}',
+        payload=json.dumps({"year": "2024", "month": "3", "taxi_type": "yellow"}),
         aws_conn_id=AWS_CONN_ID,
         region_name=AWS_REGION,
         do_xcom_push=True,
