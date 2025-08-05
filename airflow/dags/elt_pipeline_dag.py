@@ -25,14 +25,14 @@ DBT_COMMAND = (
 # --- SQL COPY Command Templates ---
 COPY_TAXI_SQL = """
     COPY "raw".yellow_tripdata
-    FROM '{{ task_instance.xcom_pull(task_ids='ingest_nyc_taxi_data' | fromjson)['s3_key'] }}'
+    FROM '{{ task_instance.xcom_pull(task_ids='ingest_nyc_taxi_data' | fromjson)['s3_uri'] }}'
     IAM_ROLE 'arn:aws:iam::825088006006:role/nyc-taxi-pipeline-Role-Redshift-Serverless-dev'
     FORMAT AS PARQUET;
 """
 
 COPY_WEATHER_SQL = """
     COPY "raw".noaa_weather_data
-    FROM '{{ task_instance.xcom_pull(task_ids='ingest_noaa_weather_data' | fromjson)['redshift_s3_key'] }}'
+    FROM '{{ task_instance.xcom_pull(task_ids='ingest_noaa_weather_data' | fromjson)['s3_uri'] }}'
     IAM_ROLE 'arn:aws:iam::825088006006:role/nyc-taxi-pipeline-Role-Redshift-Serverless-dev'
     FORMAT AS JSON 'auto';
 """
