@@ -73,6 +73,7 @@ def lambda_handler(event, context):
             "statusCode": 200,
             "message": success_msg,
             "destination_key": destination_s3_key,
+            "s3_uri": f"s3://{bronze_bucket_name}/{destination_s3_key}",
         }
 
     except requests.exceptions.HTTPError as http_err:

@@ -195,6 +195,7 @@ def lambda_handler(event, context):
             "message": success_msg,
             "redshift_s3_key": redshift_s3_key,
             "original_s3_key": original_s3_key,
+            "s3_uri": f"s3://{bronze_bucket_name}/{redshift_s3_key}",
             "records_processed": len(original_data.get("results", [])),
         }
 
