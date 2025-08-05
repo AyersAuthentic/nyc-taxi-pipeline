@@ -25,14 +25,14 @@ DBT_COMMAND = (
 # --- SQL COPY Command Templates ---
 COPY_TAXI_SQL = """
     COPY "raw".yellow_tripdata
-    FROM '{{ task_instance.xcom_pull(task_ids='ingest_nyc_taxi_data')['s3_key'] }}'
+    FROM '{{ (task_instance.xcom_pull(task_ids='ingest_nyc_taxi_data') | fromjson)['s3_uri'] }}'
     IAM_ROLE 'arn:aws:iam::825088006006:role/nyc-taxi-pipeline-Role-Redshift-Serverless-dev'
     FORMAT AS PARQUET;
 """
 
 COPY_WEATHER_SQL = """
     COPY "raw".noaa_weather_data
-    FROM '{{ task_instance.xcom_pull(task_ids='ingest_noaa_weather_data')['redshift_s3_key'] }}'
+    FROM '{{ (task_instance.xcom_pull(task_ids='ingest_noaa_weather_data') | fromjson)['s3_uri'] }}'
     IAM_ROLE 'arn:aws:iam::825088006006:role/nyc-taxi-pipeline-Role-Redshift-Serverless-dev'
     FORMAT AS JSON 'auto';
 """
@@ -75,7 +75,14 @@ with DAG(
     ingest_weather_data = LambdaInvokeFunctionOperator(
         task_id="ingest_noaa_weather_data",
         function_name=AWS_LAMBDA_FUNCTION_WEATHER,
-        payload='{"start_date": "2024-01-01", "end_date": "2024-01-31"}',
+        payload="""{
+                "dataset_id": "GHCND",
+                "station_id": "GHCND:USW00094728",
+                "datatype_ids": ["PRCP", "TEMP", "TAVG", "TMAX", "TMIN", "WT16", "WT14"],
+                "start_date": "2024-03-01",
+                "end_date": "2024-03-05",
+                "units": "standard"
+            }""",
         aws_conn_id=AWS_CONN_ID,
         region_name=AWS_REGION,
         do_xcom_push=True,
@@ -84,7 +91,7 @@ with DAG(
     ingest_taxi_data = LambdaInvokeFunctionOperator(
         task_id="ingest_nyc_taxi_data",
         function_name=AWS_LAMBDA_FUNCTION_TAXI,
-        payload='{"year": "2024", "month": "1"}',
+        payload='{"year": "2024", "month": "3"}',
         aws_conn_id=AWS_CONN_ID,
         region_name=AWS_REGION,
         do_xcom_push=True,
