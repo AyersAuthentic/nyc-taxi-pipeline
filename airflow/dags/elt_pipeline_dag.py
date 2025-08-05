@@ -48,7 +48,6 @@ with DAG(
     start_date=pendulum.datetime(2024, 1, 1, tz="UTC"),
     catchup=False,
     is_paused_upon_creation=True,
-    render_template_as_native_obj=True,
     tags=["taxi_data", "dbt", "elt"],
     doc_md="""
     ### NYC Taxi ELT Pipeline
