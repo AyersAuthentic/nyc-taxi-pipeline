@@ -3,11 +3,14 @@ from __future__ import annotations
 import json
 
 import pendulum
+from airflow.decorators import task
+from airflow.exceptions import AirflowException
 from airflow.models.dag import DAG
 from airflow.operators.bash import BashOperator
 from airflow.providers.amazon.aws.operators.lambda_function import LambdaInvokeFunctionOperator
 from airflow.providers.common.sql.operators.sql import SQLExecuteQueryOperator
 
+# ---- Config ----
 AWS_REGION = "us-east-1"
 AWS_CONN_ID = "aws_default"
 REDSHIFT_CONN_ID = "redshift_default"
@@ -24,21 +27,20 @@ DBT_COMMAND = (
     f"dbt deps && dbt seed && dbt run && dbt test"
 )
 
-# --- SQL COPY Command Templates ---
+# ---- SQL ----
 COPY_TAXI_SQL = """
-    COPY "raw".yellow_tripdata
-    FROM '{{ task_instance.xcom_pull(task_ids='ingest_nyc_taxi_data')['s3_uri'] }}'
-    IAM_ROLE 'arn:aws:iam::825088006006:role/nyc-taxi-pipeline-Role-Redshift-Serverless-dev'
-    FORMAT AS PARQUET;
+COPY "raw".yellow_tripdata
+FROM '{{ ti.xcom_pull(task_ids="taxi_s3_uri") }}'
+IAM_ROLE 'arn:aws:iam::825088006006:role/nyc-taxi-pipeline-Role-Redshift-Serverless-dev'
+FORMAT AS PARQUET;
 """
 
 COPY_WEATHER_SQL = """
-    COPY "raw".noaa_weather_data
-    FROM '{{ task_instance.xcom_pull(task_ids='ingest_noaa_weather_data')['s3_uri'] }}'
-    IAM_ROLE 'arn:aws:iam::825088006006:role/nyc-taxi-pipeline-Role-Redshift-Serverless-dev'
-    FORMAT AS JSON 'auto';
+COPY "raw".noaa_weather_data
+FROM '{{ ti.xcom_pull(task_ids="weather_s3_uri") }}'
+IAM_ROLE 'arn:aws:iam::825088006006:role/nyc-taxi-pipeline-Role-Redshift-Serverless-dev'
+FORMAT AS JSON 'auto';
 """
-
 
 with DAG(
     dag_id="nyc_taxi_elt_pipeline",
@@ -54,27 +56,13 @@ with DAG(
     This DAG orchestrates the entire ELT process for the NYC Taxi project.
 
     **Purpose:**
-    The pipeline ingests raw data from two external sources (NYC TLC and NOAA),
-    loads it into a Redshift data warehouse, and then uses dbt to transform
-    the raw data into a clean, analytical star schema.
+    Ingest raw data (TLC + NOAA) → load to Redshift → transform with dbt.
 
-    **Pipeline Stages:**
-
-    1.  **Ingest (Extract):** Two parallel tasks trigger AWS Lambda functions
-        to fetch the latest data. These functions save the raw files to the
-        S3 Bronze bucket and push the S3 file path to XComs.
-
-    2.  **Load:** Two parallel tasks use the `RedshiftSQLOperator` to run a
-        `COPY` command. They dynamically pull the S3 file path from the
-        corresponding ingestion task via XComs, loading the raw data into Redshift.
-
-    3.  **Transform:** A final task runs `dbt build` using the `BashOperator`.
-        This command orchestrates the entire dbt project, building the
-        `staging` and `marts` schemas in Redshift.
+    **Stages:**
+    1) Ingest (Lambda) → 2) Load (COPY) → 3) Transform (dbt).
     """,
 ) as dag:
-
-    # --- Ingestion Tasks ---
+    # ---- Ingest tasks  ----
     ingest_weather_data = LambdaInvokeFunctionOperator(
         task_id="ingest_noaa_weather_data",
         function_name=AWS_LAMBDA_FUNCTION_WEATHER,
@@ -82,7 +70,7 @@ with DAG(
             {
                 "dataset_id": "GHCND",
                 "station_id": "GHCND:USW00094728",
-                "datatype_ids": ["PRCP", "TEMP", "TAVG", "TMAX", "TMIN", "WT16", "WT14"],
+                "datatype_ids": "PRCP,TEMP,TAVG,TMAX,TMIN,WT16,WT14",
                 "start_date": "2024-03-01",
                 "end_date": "2024-03-05",
                 "units": "standard",
@@ -102,7 +90,35 @@ with DAG(
         do_xcom_push=True,
     )
 
-    # --- New Loading Tasks ---
+    # ---- Normalization tasks ----
+    @task(task_id="weather_s3_uri")
+    def weather_s3_uri(ti=None) -> str:
+        raw = ti.xcom_pull(task_ids="ingest_noaa_weather_data")
+        data = json.loads(raw) if isinstance(raw, str) else raw
+        status = int(data.get("statusCode", 200))
+        if status != 200:
+            raise AirflowException(f"NOAA ingest failed: {data}")
+        uri = data.get("redshift_s3_uri") or data.get("s3_uri")
+        if not uri:
+            raise AirflowException(f"Missing S3 URI in NOAA XCom: keys={list(data.keys())}")
+        return uri
+
+    @task(task_id="taxi_s3_uri")
+    def taxi_s3_uri(ti=None) -> str:
+        raw = ti.xcom_pull(task_ids="ingest_nyc_taxi_data")
+        data = json.loads(raw) if isinstance(raw, str) else raw
+        status = int(data.get("statusCode", 200))
+        if status != 200:
+            raise AirflowException(f"TLC ingest failed: {data}")
+        uri = data.get("s3_uri") or data.get("redshift_s3_uri")
+        if not uri:
+            raise AirflowException(f"Missing S3 URI in TLC XCom: keys={list(data.keys())}")
+        return uri
+
+    weather_uri = weather_s3_uri()
+    taxi_uri = taxi_s3_uri()
+
+    # ---- Load tasks ----
     load_weather_data_to_redshift = SQLExecuteQueryOperator(
         task_id="load_weather_data_to_redshift",
         sql=COPY_WEATHER_SQL,
@@ -110,17 +126,18 @@ with DAG(
     )
 
     load_taxi_data_to_redshift = SQLExecuteQueryOperator(
-        task_id="load_taxi_data_to_redshift", sql=COPY_TAXI_SQL, conn_id=REDSHIFT_CONN_ID
+        task_id="load_taxi_data_to_redshift",
+        sql=COPY_TAXI_SQL,
+        conn_id=REDSHIFT_CONN_ID,
     )
 
-    # --- Transformation Task ---
+    # ---- Transform ----
     transform_data_with_dbt = BashOperator(
         task_id="transform_data_with_dbt",
         bash_command=DBT_COMMAND,
     )
 
-    # --- Set Task Dependencies ---
-    # Ingest -> Load -> Transform
-    ingest_weather_data >> load_weather_data_to_redshift
-    ingest_taxi_data >> load_taxi_data_to_redshift
+    # ---- Orchestration ----
+    ingest_weather_data >> weather_uri >> load_weather_data_to_redshift
+    ingest_taxi_data >> taxi_uri >> load_taxi_data_to_redshift
     [load_weather_data_to_redshift, load_taxi_data_to_redshift] >> transform_data_with_dbt
