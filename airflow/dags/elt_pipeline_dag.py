@@ -122,12 +122,14 @@ with DAG(
         task_id="load_weather_data_to_redshift",
         sql=COPY_WEATHER_SQL,
         conn_id=REDSHIFT_CONN_ID,
+        region_name=AWS_REGION,
     )
 
     load_taxi_data_to_redshift = SQLExecuteQueryOperator(
         task_id="load_taxi_data_to_redshift",
         sql=COPY_TAXI_SQL,
         conn_id=REDSHIFT_CONN_ID,
+        region_name=AWS_REGION,
     )
 
     # ---- Transform ----
