@@ -8,7 +8,7 @@ from airflow.exceptions import AirflowException
 from airflow.models.dag import DAG
 from airflow.operators.bash import BashOperator
 from airflow.providers.amazon.aws.operators.lambda_function import LambdaInvokeFunctionOperator
-from airflow.providers.common.sql.operators.sql import SQLExecuteQueryOperator, fetch_all_handler
+from airflow.providers.common.sql.operators.sql import SQLExecuteQueryOperator
 
 # ---- Config ----
 AWS_REGION = "us-east-1"
@@ -114,14 +114,6 @@ with DAG(
             raise AirflowException(f"Missing S3 URI in TLC XCom: keys={list(data.keys())}")
         return uri
 
-    whoami = SQLExecuteQueryOperator(
-        task_id="whoami",
-        sql="select current_user;",
-        conn_id="redshift_default",
-        do_xcom_push=True,
-        handler=fetch_all_handler,  # pushes rows to XCom
-    )
-
     weather_uri = weather_s3_uri()
     taxi_uri = taxi_s3_uri()
 
@@ -147,4 +139,4 @@ with DAG(
     # ---- Orchestration ----
     ingest_weather_data >> weather_uri >> load_weather_data_to_redshift
     ingest_taxi_data >> taxi_uri >> load_taxi_data_to_redshift
-    whoami >> [load_weather_data_to_redshift, load_taxi_data_to_redshift] >> transform_data_with_dbt
+    [load_weather_data_to_redshift, load_taxi_data_to_redshift] >> transform_data_with_dbt
