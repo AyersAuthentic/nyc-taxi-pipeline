@@ -18,7 +18,7 @@ REDSHIFT_CONN_ID = "redshift_default"
 AWS_LAMBDA_FUNCTION_TAXI = "nyc-taxi-pipeline-nyc-taxi-ingest-dev"
 AWS_LAMBDA_FUNCTION_WEATHER = "nyc-taxi-pipeline-noaa-weather-ingest-dev"
 
-DBT_PROJECT_DIR = "/home/ec2-user/app/dbt_nyc_taxi"
+DBT_PROJECT_DIR = "/home/ec2-user/airflow_project/nyc-taxi-pipeline/dbt_nyc_taxi"
 VENV_ACTIVATE_CMD = "source /home/ec2-user/airflow_project/venv/bin/activate"
 DBT_COMMAND = (
     f"source /home/ec2-user/.dbt/dbt_env.sh && "
