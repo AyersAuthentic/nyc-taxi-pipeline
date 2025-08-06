@@ -116,7 +116,7 @@ with DAG(
 
     whoami = SQLExecuteQueryOperator(
         task_id="whoami",
-        sql="select current_user, session_user, current_schema;",
+        sql="select current_user;",
         conn_id="redshift_default",
         do_xcom_push=True,
         handler=fetch_all_handler,  # pushes rows to XCom
