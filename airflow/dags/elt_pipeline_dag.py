@@ -29,13 +29,29 @@ DBT_COMMAND = (
 
 # ---- SQL Statements ----
 
-# DELETE statements to clear data for the specific period before loading.
-CLEANUP_TAXI_SQL = """
+LOAD_TAXI_TO_TEMP_SQL = """
+CREATE TEMP TABLE temp_yellow_tripdata (LIKE "raw".yellow_tripdata);
+
+COPY temp_yellow_tripdata
+FROM '{{ ti.xcom_pull(task_ids="taxi_s3_uri") }}'
+IAM_ROLE 'arn:aws:iam::825088006006:role/nyc-taxi-pipeline-Role-Redshift-Serverless-dev'
+FORMAT AS PARQUET;
+"""
+
+MERGE_TAXI_SQL = """
+BEGIN;
+
+-- Delete any records from the main table that exist in our temporary landing table
 DELETE FROM "raw".yellow_tripdata
-WHERE
-    (EXTRACT(YEAR FROM tpep_pickup_datetime) = 2024 AND EXTRACT(MONTH FROM tpep_pickup_datetime) = 3)
-    OR
-    (EXTRACT(YEAR FROM tpep_dropoff_datetime) = 2024 AND EXTRACT(MONTH FROM tpep_dropoff_datetime) = 3);
+USING temp_yellow_tripdata
+WHERE "raw".yellow_tripdata.tpep_pickup_datetime = temp_yellow_tripdata.tpep_pickup_datetime
+AND "raw".yellow_tripdata.vendorid = temp_yellow_tripdata.vendorid;
+
+-- Insert all the new records from the temporary table
+INSERT INTO "raw".yellow_tripdata
+SELECT * FROM temp_yellow_tripdata;
+
+END;
 """
 
 CLEANUP_WEATHER_SQL = """
@@ -135,12 +151,6 @@ with DAG(
         conn_id=REDSHIFT_CONN_ID,
     )
 
-    cleanup_raw_taxi_table = SQLExecuteQueryOperator(
-        task_id="cleanup_raw_taxi_table",
-        sql=CLEANUP_TAXI_SQL,
-        conn_id=REDSHIFT_CONN_ID,
-    )
-
     # ---- Load tasks ----
     load_weather_data_to_redshift = SQLExecuteQueryOperator(
         task_id="load_weather_data_to_redshift",
@@ -148,9 +158,15 @@ with DAG(
         conn_id=REDSHIFT_CONN_ID,
     )
 
-    load_taxi_data_to_redshift = SQLExecuteQueryOperator(
-        task_id="load_taxi_data_to_redshift",
-        sql=COPY_TAXI_SQL,
+    load_taxi_data_to_temp_table = SQLExecuteQueryOperator(
+        task_id="load_taxi_data_to_temp_table",
+        sql=LOAD_TAXI_TO_TEMP_SQL,
+        conn_id=REDSHIFT_CONN_ID,
+    )
+
+    merge_taxi_data_to_raw_table = SQLExecuteQueryOperator(
+        task_id="merge_taxi_data_to_raw_table",
+        sql=MERGE_TAXI_SQL,
         conn_id=REDSHIFT_CONN_ID,
     )
 
@@ -163,6 +179,6 @@ with DAG(
     # ---- Orchestration ----
     # Dependency chain: Ingest -> Normalize URI -> Cleanup -> Load -> Transform
     ingest_weather_data >> weather_uri >> cleanup_raw_weather_table >> load_weather_data_to_redshift
-    ingest_taxi_data >> taxi_uri >> cleanup_raw_taxi_table >> load_taxi_data_to_redshift
+    ingest_taxi_data >> taxi_uri >> load_taxi_data_to_temp_table >> merge_taxi_data_to_raw_table
 
-    [load_weather_data_to_redshift, load_taxi_data_to_redshift] >> transform_data_with_dbt
+    [load_weather_data_to_redshift, merge_taxi_data_to_raw_table] >> transform_data_with_dbt
