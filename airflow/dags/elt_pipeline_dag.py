@@ -32,8 +32,10 @@ DBT_COMMAND = (
 # DELETE statements to clear data for the specific period before loading.
 CLEANUP_TAXI_SQL = """
 DELETE FROM "raw".yellow_tripdata
-WHERE EXTRACT(YEAR FROM tpep_pickup_datetime) = 2024
-AND EXTRACT(MONTH FROM tpep_pickup_datetime) = 3;
+WHERE
+    (EXTRACT(YEAR FROM tpep_pickup_datetime) = 2024 AND EXTRACT(MONTH FROM tpep_pickup_datetime) = 3)
+    OR
+    (EXTRACT(YEAR FROM tpep_dropoff_datetime) = 2024 AND EXTRACT(MONTH FROM tpep_dropoff_datetime) = 3);
 """
 
 CLEANUP_WEATHER_SQL = """
