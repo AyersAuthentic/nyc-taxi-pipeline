@@ -27,7 +27,22 @@ DBT_COMMAND = (
     f"dbt deps && dbt seed && dbt run && dbt test"
 )
 
-# ---- SQL ----
+# ---- SQL Statements ----
+
+# DELETE statements to clear data for the specific period before loading.
+CLEANUP_TAXI_SQL = """
+DELETE FROM "raw".yellow_tripdata
+WHERE EXTRACT(YEAR FROM tpep_pickup_datetime) = 2024
+AND EXTRACT(MONTH FROM tpep_pickup_datetime) = 3;
+"""
+
+CLEANUP_WEATHER_SQL = """
+DELETE FROM "raw".noaa_weather_data
+WHERE CAST(date AS DATE) >= '2024-03-01'
+AND CAST(date AS DATE) <= '2024-03-05';
+"""
+
+# COPY commands now pull from XComs
 COPY_TAXI_SQL = """
 COPY "raw".yellow_tripdata
 FROM '{{ ti.xcom_pull(task_ids="taxi_s3_uri") }}'
@@ -51,30 +66,15 @@ with DAG(
     tags=["taxi_data", "dbt", "elt"],
     doc_md="""
     ### NYC Taxi ELT Pipeline
-
-    This DAG orchestrates the entire ELT process for the NYC Taxi project.
-
-    **Purpose:**
-    Ingest raw data (TLC + NOAA) → load to Redshift → transform with dbt.
-
-    **Stages:**
-    1) Ingest (Lambda) → 2) Load (COPY) → 3) Transform (dbt).
+    This DAG orchestrates an idempotent ELT process. It deletes data
+    for the target period before loading new data to prevent duplicates.
     """,
 ) as dag:
     # ---- Ingest tasks  ----
     ingest_weather_data = LambdaInvokeFunctionOperator(
         task_id="ingest_noaa_weather_data",
         function_name=AWS_LAMBDA_FUNCTION_WEATHER,
-        payload=json.dumps(
-            {
-                "dataset_id": "GHCND",
-                "station_id": "GHCND:USW00094728",
-                "datatype_ids": "PRCP,TEMP,TAVG,TMAX,TMIN,WT16,WT14",
-                "start_date": "2024-03-01",
-                "end_date": "2024-03-05",
-                "units": "standard",
-            }
-        ),
+        payload=json.dumps({"start_date": "2024-03-01", "end_date": "2024-03-05"}),
         aws_conn_id=AWS_CONN_ID,
         region_name=AWS_REGION,
         do_xcom_push=True,
@@ -117,6 +117,19 @@ with DAG(
     weather_uri = weather_s3_uri()
     taxi_uri = taxi_s3_uri()
 
+    # ---- Cleanup tasks ----
+    cleanup_raw_weather_table = SQLExecuteQueryOperator(
+        task_id="cleanup_raw_weather_table",
+        sql=CLEANUP_WEATHER_SQL,
+        conn_id=REDSHIFT_CONN_ID,
+    )
+
+    cleanup_raw_taxi_table = SQLExecuteQueryOperator(
+        task_id="cleanup_raw_taxi_table",
+        sql=CLEANUP_TAXI_SQL,
+        conn_id=REDSHIFT_CONN_ID,
+    )
+
     # ---- Load tasks ----
     load_weather_data_to_redshift = SQLExecuteQueryOperator(
         task_id="load_weather_data_to_redshift",
@@ -137,6 +150,8 @@ with DAG(
     )
 
     # ---- Orchestration ----
-    ingest_weather_data >> weather_uri >> load_weather_data_to_redshift
-    ingest_taxi_data >> taxi_uri >> load_taxi_data_to_redshift
+    # Dependency chain: Ingest -> Normalize URI -> Cleanup -> Load -> Transform
+    ingest_weather_data >> weather_uri >> cleanup_raw_weather_table >> load_weather_data_to_redshift
+    ingest_taxi_data >> taxi_uri >> cleanup_raw_taxi_table >> load_taxi_data_to_redshift
+
     [load_weather_data_to_redshift, load_taxi_data_to_redshift] >> transform_data_with_dbt
