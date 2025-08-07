@@ -28,10 +28,9 @@ DBT_COMMAND = (
 )
 
 # ---- SQL Statements ----
+CREATE_TEMP_TAXI_TABLE_SQL = 'CREATE TEMP TABLE temp_yellow_tripdata (LIKE "raw".yellow_tripdata);'
 
-LOAD_TAXI_TO_TEMP_SQL = """
-CREATE TEMP TABLE temp_yellow_tripdata (LIKE "raw".yellow_tripdata);
-
+COPY_TAXI_TO_TEMP_SQL = """
 COPY temp_yellow_tripdata
 FROM '{{ ti.xcom_pull(task_ids="taxi_s3_uri") }}'
 IAM_ROLE 'arn:aws:iam::825088006006:role/nyc-taxi-pipeline-Role-Redshift-Serverless-dev'
@@ -158,9 +157,15 @@ with DAG(
         conn_id=REDSHIFT_CONN_ID,
     )
 
+    create_temp_taxi_table = SQLExecuteQueryOperator(
+        task_id="create_temp_taxi_table",
+        sql=CREATE_TEMP_TAXI_TABLE_SQL,
+        conn_id=REDSHIFT_CONN_ID,
+    )
+
     load_taxi_data_to_temp_table = SQLExecuteQueryOperator(
         task_id="load_taxi_data_to_temp_table",
-        sql=LOAD_TAXI_TO_TEMP_SQL,
+        sql=COPY_TAXI_TO_TEMP_SQL,
         conn_id=REDSHIFT_CONN_ID,
     )
 
@@ -179,6 +184,12 @@ with DAG(
     # ---- Orchestration ----
     # Dependency chain: Ingest -> Normalize URI -> Cleanup -> Load -> Transform
     ingest_weather_data >> weather_uri >> cleanup_raw_weather_table >> load_weather_data_to_redshift
-    ingest_taxi_data >> taxi_uri >> load_taxi_data_to_temp_table >> merge_taxi_data_to_raw_table
+    (
+        ingest_taxi_data
+        >> taxi_uri
+        >> create_temp_taxi_table
+        >> load_taxi_data_to_temp_table
+        >> merge_taxi_data_to_raw_table
+    )
 
     [load_weather_data_to_redshift, merge_taxi_data_to_raw_table] >> transform_data_with_dbt
