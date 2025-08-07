@@ -162,6 +162,7 @@ with DAG(
         task_id="idempotent_load_taxi_data",
         sql=TRANSACTIONAL_TAXI_LOAD_SQL,
         conn_id=REDSHIFT_CONN_ID,
+        split_statements=True,
     )
 
     # ---- Transform ----
