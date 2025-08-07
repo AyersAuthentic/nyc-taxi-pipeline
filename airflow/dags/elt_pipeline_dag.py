@@ -74,7 +74,16 @@ with DAG(
     ingest_weather_data = LambdaInvokeFunctionOperator(
         task_id="ingest_noaa_weather_data",
         function_name=AWS_LAMBDA_FUNCTION_WEATHER,
-        payload=json.dumps({"start_date": "2024-03-01", "end_date": "2024-03-05"}),
+        payload=json.dumps(
+            {
+                "dataset_id": "GHCND",
+                "station_id": "GHCND:USW00094728",
+                "datatype_ids": "PRCP,TEMP,TAVG,TMAX,TMIN,WT16,WT14",
+                "start_date": "2024-03-01",
+                "end_date": "2024-03-05",
+                "units": "standard",
+            }
+        ),
         aws_conn_id=AWS_CONN_ID,
         region_name=AWS_REGION,
         do_xcom_push=True,
