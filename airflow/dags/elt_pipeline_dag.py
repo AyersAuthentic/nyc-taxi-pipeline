@@ -28,28 +28,29 @@ DBT_COMMAND = (
 )
 
 # ---- SQL Statements ----
-CREATE_TEMP_TAXI_TABLE_SQL = 'CREATE TEMP TABLE temp_yellow_tripdata (LIKE "raw".yellow_tripdata);'
+TRANSACTIONAL_TAXI_LOAD_SQL = """
+BEGIN;
 
-COPY_TAXI_TO_TEMP_SQL = """
+-- 1. Create a temporary table with the same structure as our raw table.
+CREATE TEMP TABLE temp_yellow_tripdata (LIKE "raw".yellow_tripdata);
+
+-- 2. Copy the new data from S3 into the temporary table.
 COPY temp_yellow_tripdata
 FROM '{{ ti.xcom_pull(task_ids="taxi_s3_uri") }}'
 IAM_ROLE 'arn:aws:iam::825088006006:role/nyc-taxi-pipeline-Role-Redshift-Serverless-dev'
 FORMAT AS PARQUET;
-"""
 
-MERGE_TAXI_SQL = """
-BEGIN;
-
--- Delete any records from the main table that exist in our temporary landing table
+-- 3. Delete any records from the main raw table that exist in our temp table.
 DELETE FROM "raw".yellow_tripdata
 USING temp_yellow_tripdata
 WHERE "raw".yellow_tripdata.tpep_pickup_datetime = temp_yellow_tripdata.tpep_pickup_datetime
 AND "raw".yellow_tripdata.vendorid = temp_yellow_tripdata.vendorid;
 
--- Insert all the new records from the temporary table
+-- 4. Insert all the new records from the temporary table into the main raw table.
 INSERT INTO "raw".yellow_tripdata
 SELECT * FROM temp_yellow_tripdata;
 
+-- The temporary table is automatically dropped at the end of the session.
 END;
 """
 
@@ -157,21 +158,9 @@ with DAG(
         conn_id=REDSHIFT_CONN_ID,
     )
 
-    create_temp_taxi_table = SQLExecuteQueryOperator(
-        task_id="create_temp_taxi_table",
-        sql=CREATE_TEMP_TAXI_TABLE_SQL,
-        conn_id=REDSHIFT_CONN_ID,
-    )
-
-    load_taxi_data_to_temp_table = SQLExecuteQueryOperator(
-        task_id="load_taxi_data_to_temp_table",
-        sql=COPY_TAXI_TO_TEMP_SQL,
-        conn_id=REDSHIFT_CONN_ID,
-    )
-
-    merge_taxi_data_to_raw_table = SQLExecuteQueryOperator(
-        task_id="merge_taxi_data_to_raw_table",
-        sql=MERGE_TAXI_SQL,
+    idempotent_load_taxi_data = SQLExecuteQueryOperator(
+        task_id="idempotent_load_taxi_data",
+        sql=TRANSACTIONAL_TAXI_LOAD_SQL,
         conn_id=REDSHIFT_CONN_ID,
     )
 
@@ -184,12 +173,6 @@ with DAG(
     # ---- Orchestration ----
     # Dependency chain: Ingest -> Normalize URI -> Cleanup -> Load -> Transform
     ingest_weather_data >> weather_uri >> cleanup_raw_weather_table >> load_weather_data_to_redshift
-    (
-        ingest_taxi_data
-        >> taxi_uri
-        >> create_temp_taxi_table
-        >> load_taxi_data_to_temp_table
-        >> merge_taxi_data_to_raw_table
-    )
+    ingest_taxi_data >> taxi_uri >> idempotent_load_taxi_data
 
-    [load_weather_data_to_redshift, merge_taxi_data_to_raw_table] >> transform_data_with_dbt
+    [load_weather_data_to_redshift, idempotent_load_taxi_data] >> transform_data_with_dbt
