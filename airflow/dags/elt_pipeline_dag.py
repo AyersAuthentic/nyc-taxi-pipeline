@@ -54,11 +54,11 @@ SELECT * FROM temp_yellow_tripdata;
 END;
 """
 
-CLEANUP_WEATHER_SQL = """
-DELETE FROM "raw".noaa_weather_data
-WHERE CAST(date AS DATE) >= '2024-03-01'
-AND CAST(date AS DATE) <= '2024-03-05';
-"""
+CLEANUP_WEATHER_SQL = (
+    'DELETE FROM "raw".noaa_weather_data '
+    "WHERE date_trunc('month', CAST(date AS DATE)) = "
+    "date_trunc('month', CAST('{{ (data_interval_end - macros.dateutil.relativedelta.relativedelta(months=2)).strftime(\"%Y-%m-%d\") }}' AS DATE));"
+)
 
 # COPY commands now pull from XComs
 COPY_TAXI_SQL = """
@@ -77,9 +77,9 @@ FORMAT AS JSON 'auto';
 
 with DAG(
     dag_id="nyc_taxi_elt_pipeline",
-    schedule="@daily",
-    start_date=pendulum.datetime(2024, 1, 1, tz="UTC"),
-    catchup=False,
+    schedule="0 5 15 * *",
+    start_date=pendulum.datetime(2025, 6, 1, tz="UTC"),
+    catchup=True,
     is_paused_upon_creation=True,
     tags=["taxi_data", "dbt", "elt"],
     doc_md="""
@@ -97,8 +97,8 @@ with DAG(
                 "dataset_id": "GHCND",
                 "station_id": "GHCND:USW00094728",
                 "datatype_ids": "PRCP,TEMP,TAVG,TMAX,TMIN,WT16,WT14",
-                "start_date": "2024-03-01",
-                "end_date": "2024-03-05",
+                "start_date": "{{ (data_interval_end - macros.dateutil.relativedelta.relativedelta(months=2)).strftime('%Y-%m-01') }}",
+                "end_date": "{{ (data_interval_end - macros.dateutil.relativedelta.relativedelta(months=2)).end_of('month').strftime('%Y-%m-%d') }}",
                 "units": "standard",
             }
         ),
@@ -110,7 +110,13 @@ with DAG(
     ingest_taxi_data = LambdaInvokeFunctionOperator(
         task_id="ingest_nyc_taxi_data",
         function_name=AWS_LAMBDA_FUNCTION_TAXI,
-        payload=json.dumps({"year": "2024", "month": "3", "taxi_type": "yellow"}),
+        payload=json.dumps(
+            {
+                "year": "{{ (data_interval_end - macros.dateutil.relativedelta.relativedelta(months=2)).year }}",
+                "month": "{{ (data_interval_end - macros.dateutil.relativedelta.relativedelta(months=2)).month }}",
+                "taxi_type": "yellow",
+            }
+        ),
         aws_conn_id=AWS_CONN_ID,
         region_name=AWS_REGION,
         do_xcom_push=True,
