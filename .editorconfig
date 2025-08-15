@@ -17,3 +17,5 @@ trim_trailing_whitespace = false
 # Terraform override
 [*.tf]
 indent_size = 2
+
+[!*.ipynb]

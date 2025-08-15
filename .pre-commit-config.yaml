@@ -38,5 +38,5 @@ repos:
     hooks:
       - id: editorconfig-checker
         alias: ec
-        exclude: '.*(\.drawio|\.drawio\.svg|\.png|\.jpg|\.jpeg|\.pdf|\.md|\.ipynb|\.sh|\.yml|\.yaml)$'
+        exclude: '.*(\.drawio|\.drawio\.svg|\.png|\.jpg|\.jpeg|\.pdf|\.md|\.ipynb|\.sh|\.yml|\.yaml|\.redshiftnb)$'
 
