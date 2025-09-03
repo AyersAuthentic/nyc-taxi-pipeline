@@ -47,6 +47,7 @@ select
     weather.tmax as max_temp,
     weather.tmin as min_temp
 
+
 from trips
 inner join zones as pickup_zone
     on trips.pickup_location_id = pickup_zone.location_id
