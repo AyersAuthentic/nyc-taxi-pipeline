@@ -47,6 +47,7 @@ select
     weather.tmax as max_temp,
     weather.tmin as min_temp
 
+
 from trips
 inner join zones as pickup_zone
     on trips.pickup_location_id = pickup_zone.location_id
@@ -54,3 +55,7 @@ inner join zones as dropoff_zone
     on trips.dropoff_location_id = dropoff_zone.location_id
 inner join weather
     on cast(trips.pickup_datetime as date) = weather.observation_date
+where
+    trip_duration_minutes > 0
+    and trip_distance > 0
+
