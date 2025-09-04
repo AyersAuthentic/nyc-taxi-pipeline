@@ -19,7 +19,7 @@ clean-targets:
 models:
   dbt_nyc_taxi:
     staging:
-      +materialized: view
+      +materialized: table
       +schema: staging
     marts:
       +materialized: table
