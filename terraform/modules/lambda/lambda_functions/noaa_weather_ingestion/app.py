@@ -1,3 +1,4 @@
+import datetime
 import json
 import logging
 import os
@@ -49,12 +50,14 @@ def transform_noaa_response_for_redshift(noaa_json_response, station_id, dataset
         # Extract results array for Redshift loading
         results = noaa_data.get("results", [])
 
+        ingestion_ts = datetime.datetime.utcnow().isoformat()
+
         # Add metadata fields to each record for better data lineage
         enriched_results = []
         for record in results:
             enriched_record = {
                 **record,
-                "ingestion_timestamp": "{{ current_timestamp }}",  # Will be replaced in SQL
+                "ingestion_timestamp": ingestion_ts,
                 "source_dataset": dataset_id,
                 "api_response_metadata": {
                     "offset": noaa_data.get("metadata", {}).get("resultset", {}).get("offset"),

@@ -86,21 +86,9 @@ else
   echo "requirements.txt not found, skipping dependency installation."
 fi
 
-ZIP_FILE_NAME="${LAMBDA_FUNCTION_NAME}_lambda.zip"
-echo "Creating ZIP file: ${ZIP_FILE_NAME} from contents of package/ directory..."
-cd package
-zip -r "../${ZIP_FILE_NAME}" .
-if [ $? -ne 0 ]; then
-    echo "ERROR: Failed to create ZIP file."
-    cd ..
-    if [ "$VENV_ACTIVATED" = true ] && type deactivate > /dev/null 2>&1; then deactivate; fi
-    cd "$ORIGINAL_CWD"
-    exit 1
-fi
-cd ..
 
 echo "-------------------------------------------------------------"
-echo "Lambda package created successfully: ${TARGET_LAMBDA_DIR}/${ZIP_FILE_NAME}"
+echo "Lambda package created successfully"
 echo "-------------------------------------------------------------"
 
 if [ "$VENV_ACTIVATED" = true ] && type deactivate > /dev/null 2>&1; then
