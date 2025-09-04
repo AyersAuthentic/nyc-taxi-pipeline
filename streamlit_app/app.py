@@ -1,3 +1,4 @@
+import altair as alt
 import pandas as pd
 import psycopg2
 import streamlit as st
@@ -63,12 +64,27 @@ st.markdown(
 )
 
 if not filtered_df.empty:
-    st.bar_chart(
-        data=filtered_df,
-        x="dropoff_borough",
-        y="median_trip_duration",
-        color="precipitation_category",
+    chart = (
+        alt.Chart(filtered_df)
+        .mark_bar()
+        .encode(
+            # X-axis: Group by dropoff_borough
+            x=alt.X("dropoff_borough:N", title="Dropoff Borough", sort=None),
+            # Y-axis: The value we are measuring
+            y=alt.Y("median_trip_duration:Q", title="Median Trip Duration (Minutes)"),
+            # Color defines the different series within each group
+            color=alt.Color("precipitation_category:N", title="Precipitation"),
+            # THIS IS THE FIX: Offset bars on the X-axis by the color category
+            xOffset="precipitation_category:N",
+            # Tooltip for interactivity
+            tooltip=[
+                "dropoff_borough",
+                "precipitation_category",
+                alt.Tooltip("median_trip_duration:Q", format=".1f"),
+            ],
+        )
     )
+    st.altair_chart(chart, use_container_width=True, theme="streamlit")
 else:
     st.warning("No data available for the selected filters.")
 
