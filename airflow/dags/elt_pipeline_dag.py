@@ -20,11 +20,18 @@ AWS_LAMBDA_FUNCTION_WEATHER = "nyc-taxi-pipeline-noaa-weather-ingest-dev"
 
 DBT_PROJECT_DIR = "/home/ec2-user/airflow_project/nyc-taxi-pipeline/dbt_nyc_taxi"
 VENV_ACTIVATE_CMD = "source /home/ec2-user/airflow_project/venv/bin/activate"
-DBT_COMMAND = (
+
+DBT_SETUP_COMMAND = (
     f"source /home/ec2-user/.dbt/dbt_env.sh && "
     f"cd {DBT_PROJECT_DIR} && "
     f"{VENV_ACTIVATE_CMD} && "
-    f"dbt deps && dbt seed && dbt run && dbt test"
+    f"dbt deps && dbt seed"
+)
+DBT_TRANSFORM_COMMAND = (
+    f"source /home/ec2-user/.dbt/dbt_env.sh && "
+    f"cd {DBT_PROJECT_DIR} && "
+    f"{VENV_ACTIVATE_CMD} && "
+    f"dbt run && dbt test"
 )
 
 # ---- SQL Statements ----
@@ -88,6 +95,13 @@ with DAG(
     for the target period before loading new data to prevent duplicates.
     """,
 ) as dag:
+
+    # ---- Setup tasks ----
+    setup_database_with_dbt = BashOperator(
+        task_id="setup_database_with_dbt",
+        bash_command=DBT_SETUP_COMMAND,
+    )
+
     # ---- Ingest tasks  ----
     ingest_weather_data = LambdaInvokeFunctionOperator(
         task_id="ingest_noaa_weather_data",
@@ -174,11 +188,13 @@ with DAG(
     # ---- Transform ----
     transform_data_with_dbt = BashOperator(
         task_id="transform_data_with_dbt",
-        bash_command=DBT_COMMAND,
+        bash_command=DBT_SETUP_COMMAND,
     )
 
     # ---- Orchestration ----
     # Dependency chain: Ingest -> Normalize URI -> Cleanup -> Load -> Transform
+    setup_database_with_dbt >> [ingest_weather_data, ingest_taxi_data]
+
     ingest_weather_data >> weather_uri >> cleanup_raw_weather_table >> load_weather_data_to_redshift
     ingest_taxi_data >> taxi_uri >> idempotent_load_taxi_data
 
