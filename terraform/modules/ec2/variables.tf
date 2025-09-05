@@ -12,7 +12,7 @@ variable "environment" {
 variable "instance_type" {
   description = "EC2 instance type for Airflow (e.g., t3.micro, t4g.micro)."
   type        = string
-  default     = "t3.micro"
+  default     = "t3.medium"
 }
 
 variable "ami_id" {

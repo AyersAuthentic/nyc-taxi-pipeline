@@ -77,7 +77,7 @@ variable "ec2_key_name" {
 variable "ec2_instance_type" {
   description = "EC2 instance type for Airflow (e.g., t3.micro, t4g.micro)."
   type        = string
-  default     = "t3.small"
+  default     = "t3.medium"
 }
 
 
