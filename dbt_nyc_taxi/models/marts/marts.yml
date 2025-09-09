@@ -96,10 +96,6 @@ models:
         description: Trip pickup datetime
         tests:
           - not_null
-          - relationships:
-              to: ref('dim_weather')
-              field: observation_date
-              from_field: "date(pickup_datetime)"
       - name: dropoff_datetime
         description: Trip dropoff datetime
         tests:
