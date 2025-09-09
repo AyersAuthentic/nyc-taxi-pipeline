@@ -6,6 +6,9 @@ models:
     columns:
       - name: datetime_id
         description: Unique identifier for each datetime generated from pickup datetime
+        tests:
+          - unique
+          - not_null
       - name: pickup_datetime
         description: The original pickup datetime
       - name: pickup_year
@@ -26,6 +29,9 @@ models:
     columns:
       - name: observation_date
         description: Date of the weather observation
+        tests:
+          - unique
+          - not_null
       - name: prcp
         description: Daily precipitation measurement
       - name: tmax
@@ -40,6 +46,9 @@ models:
     columns:
       - name: location_id
         description: Unique identifier for each taxi zone location
+        tests:
+          - unique
+          - not_null
       - name: borough
         description: NYC borough name
       - name: zone
@@ -52,6 +61,9 @@ models:
     columns:
       - name: tripid
         description: Unique identifier for each trip
+        tests:
+          - unique
+          - not_null
       - name: vendor_id
         description: TPEP provider code
       - name: ratecode_id
@@ -60,20 +72,40 @@ models:
         description: Payment method code
       - name: pickup_location_id
         description: Pickup taxi zone ID
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_zones')
+              field: location_id
       - name: pickup_borough
         description: Pickup borough name
       - name: pickup_zone
         description: Pickup zone name
       - name: dropoff_location_id
         description: Dropoff taxi zone ID
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_zones')
+              field: location_id
       - name: dropoff_borough
         description: Dropoff borough name
       - name: dropoff_zone
         description: Dropoff zone name
       - name: pickup_datetime
         description: Trip pickup datetime
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_weather')
+              field: observation_date
+              from_field: "date(pickup_datetime)"
       - name: dropoff_datetime
         description: Trip dropoff datetime
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: ">= pickup_datetime"
       - name: store_and_fwd_flag
         description: Store and forward flag
       - name: passenger_count
@@ -82,6 +114,11 @@ models:
         description: Trip distance in miles
       - name: trip_duration_minutes
         description: Calculated trip duration in minutes
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 1440
       - name: fare_amount
         description: Metered fare amount
       - name: extra
@@ -114,5 +151,13 @@ models:
         description: Dropoff borough name
       - name: precipitation_category
         description: Categorized precipitation level (No Rain, Light Rain, Moderate Rain, Heavy Rain)
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['No Rain', 'Light Rain', 'Moderate Rain', 'Heavy Rain']
       - name: median_trip_duration
         description: Median trip duration in minutes for the given borough pair and precipitation category
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0

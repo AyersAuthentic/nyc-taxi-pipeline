@@ -6,28 +6,62 @@ models:
     columns:
       - name: tripid
         description: Unique identifier for each trip generated from vendor ID and pickup datetime
+        tests:
+          - unique
+          - not_null
       - name: vendor_id
         description: A code indicating the TPEP provider that provided the record
+        tests:
+          - not_null
+          - accepted_values:
+              values: [1, 2, 6, 7]
       - name: ratecode_id
         description: The final rate code in effect at the end of the trip
+        tests:
+          - not_null
       - name: pickup_location_id
         description: TLC Taxi Zone in which the taximeter was engaged
+        tests:
+          - not_null
       - name: dropoff_location_id
         description: TLC Taxi Zone in which the taximeter was disengaged
+        tests:
+          - not_null
       - name: pickup_datetime
         description: The date and time when the meter was engaged
+        tests:
+          - not_null
       - name: dropoff_datetime
         description: The date and time when the meter was disengaged
+        tests:
+          - not_null
       - name: store_and_fwd_flag
         description: This flag indicates whether the trip record was held in vehicle memory before sending to the vendor
       - name: passenger_count
         description: The number of passengers in the vehicle
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              - min_value: 0
+              - max_value: 20
       - name: trip_distance
         description: The elapsed trip distance in miles reported by the taximeter
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              - min_value: 0
       - name: payment_type
         description: A numeric code signifying how the passenger paid for the trip
+        tests:
+          - not_null
+          - accepted_values:
+              values: [1, 2, 3, 4, 5, 6]
       - name: fare_amount
         description: The time-and-distance fare calculated by the meter
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              - min_value: 0
       - name: extra
         description: Miscellaneous extras and surcharges
       - name: mta_tax
@@ -40,21 +74,35 @@ models:
         description: $0.30 improvement surcharge assessed trips at the flag drop
       - name: total_amount
         description: The total amount charged to passengers
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              - min_value: 0
 
   - name: stg_noaa_weather_data
     description: Cleaned and transformed NOAA weather data with standardized column names and ingestion timestamp
     columns:
       - name: station_id
         description: Weather station identifier
+        tests:
+          - not_null
       - name: measurement_type
         description: Type of weather measurement (PRCP, TMAX, TMIN, TAVG)
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['PRCP', 'TMAX', 'TMIN', 'TAVG']
       - name: measurement_value
         description: Weather measurement value
+        tests:
+          - not_null
       - name: attributes
         description: Additional measurement attributes
       - name: source_dataset
         description: Source dataset identifier
       - name: observation_date
         description: Date of the weather observation
+        tests:
+          - not_null
       - name: ingestion_timestamp
         description: Timestamp when the record was ingested into the staging table
