@@ -1,5 +1,5 @@
-import altair as alt
 import pandas as pd
+import plotly.express as px
 import psycopg2
 import streamlit as st
 
@@ -8,15 +8,8 @@ st.set_page_config(page_title="NYC Taxi Trip Analysis", page_icon="🚕", layout
 
 @st.cache_resource
 def get_redshift_connection():
-    """Establishes a connection to the Redshift database."""
     try:
-        conn = psycopg2.connect(
-            host=st.secrets["redshift"]["host"],
-            dbname=st.secrets["redshift"]["dbname"],
-            user=st.secrets["redshift"]["user"],
-            password=st.secrets["redshift"]["password"],
-            port=st.secrets["redshift"]["port"],
-        )
+        conn = psycopg2.connect(**st.secrets["redshift"])
         st.success("Connected to Redshift successfully!")
         return conn
     except Exception as e:
@@ -26,7 +19,6 @@ def get_redshift_connection():
 
 @st.cache_data
 def load_kpi_data():
-    """Fetches the KPI data from the Redshift data mart."""
     conn = get_redshift_connection()
     if conn:
         try:
@@ -35,7 +27,7 @@ def load_kpi_data():
             return df
         except Exception as e:
             st.error(f"Error loading data: {e}")
-            return pd.DataFrame()  # Return empty dataframe on error
+            return pd.DataFrame()
     return pd.DataFrame()
 
 
@@ -45,46 +37,79 @@ st.markdown("Analyzing the impact of weather on taxi trip durations across diffe
 data_load_state = st.text("Loading data...")
 df = load_kpi_data()
 data_load_state.text("Data loaded successfully! ✅")
+
 st.sidebar.header("Filter Your Analysis")
-
-
 pickup_borough = st.sidebar.selectbox(
     "Select Pickup Borough:",
-    options=df["pickup_borough"].unique(),
+    options=sorted(df["pickup_borough"].unique()),
     index=0,
 )
 
-filtered_df = df[df["pickup_borough"] == pickup_borough]
+filtered_df = df[df["pickup_borough"] == pickup_borough].copy()
 
+if not filtered_df.empty:
+    st.subheader(f"Summary for {pickup_borough}")
+
+    total_routes_analyzed = len(filtered_df)
+    overall_median_duration = filtered_df["median_trip_duration"].mean()
+    busiest_route_row = filtered_df.loc[filtered_df["median_trip_duration"].idxmax()]
+    busiest_dropoff = busiest_route_row["dropoff_borough"]
+
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric(label="Overall Median Duration", value=f"{overall_median_duration:.1f} min")
+    with col2:
+        st.metric(label="Routes Analyzed", value=f"{total_routes_analyzed}")
+    with col3:
+        st.metric(label="Longest Median Trip To", value=busiest_dropoff)
+    st.markdown("---")
 
 st.header(f"Median Trip Duration from {pickup_borough}")
 st.markdown(
-    "This chart shows the median trip duration in minutes,\n"
+    "This chart shows the median trip duration in minutes, "
     "grouped by dropoff borough and rain intensity."
 )
 
 if not filtered_df.empty:
-    chart = (
-        alt.Chart(filtered_df)
-        .mark_bar()
-        .encode(
-            # X-axis: Group by dropoff_borough
-            x=alt.X("dropoff_borough:N", title="Dropoff Borough", sort=None),
-            # Y-axis: The value we are measuring
-            y=alt.Y("median_trip_duration:Q", title="Median Trip Duration (Minutes)"),
-            # Color defines the different series within each group
-            color=alt.Color("precipitation_category:N", title="Precipitation"),
-            # THIS IS THE FIX: Offset bars on the X-axis by the color category
-            xOffset="precipitation_category:N",
-            # Tooltip for interactivity
-            tooltip=[
-                "dropoff_borough",
-                "precipitation_category",
-                alt.Tooltip("median_trip_duration:Q", format=".1f"),
-            ],
-        )
+    category_order = ["No Rain", "Light Rain", "Moderate Rain", "Heavy Rain"]
+    filtered_df["precipitation_category"] = pd.Categorical(
+        filtered_df["precipitation_category"], categories=category_order, ordered=True
     )
-    st.altair_chart(chart, use_container_width=True, theme="streamlit")
+    filtered_df = filtered_df.sort_values("precipitation_category")
+
+    fig = px.bar(
+        filtered_df,
+        x="dropoff_borough",
+        y="median_trip_duration",
+        color="precipitation_category",
+        barmode="group",
+        labels={
+            "dropoff_borough": "Dropoff Borough",
+            "median_trip_duration": "Median Trip Duration (Minutes)",
+            "precipitation_category": "Precipitation",
+        },
+        text_auto=".1f",
+        color_discrete_map={
+            "No Rain": "#1f77b4",
+            "Light Rain": "#ff7f0e",
+            "Moderate Rain": "#2ca02c",
+            "Heavy Rain": "#d62728",
+        },
+    )
+
+    fig.update_layout(
+        title_x=0.5,
+        legend_title_text="Precipitation",
+        plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor="rgba(0,0,0,0)",
+        font=dict(color="white"),
+        yaxis=dict(gridcolor="rgba(255, 255, 255, 0.2)"),
+        xaxis_title=None,
+    )
+
+    fig.update_traces(textfont_size=12, textangle=0, textposition="outside", cliponaxis=False)
+
+    st.plotly_chart(fig, use_container_width=True)
 else:
     st.warning("No data available for the selected filters.")
 
