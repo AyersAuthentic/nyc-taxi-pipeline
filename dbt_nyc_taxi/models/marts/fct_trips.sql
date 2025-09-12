@@ -56,6 +56,7 @@ inner join zones as dropoff_zone
 inner join weather
     on cast(trips.pickup_datetime as date) = weather.observation_date
 where
-    trip_duration_minutes > 0
-    and trip_distance > 0
+    trip_distance > 0
+    and dropoff_datetime >= pickup_datetime
+    and trip_duration_minutes <= 1440
 
