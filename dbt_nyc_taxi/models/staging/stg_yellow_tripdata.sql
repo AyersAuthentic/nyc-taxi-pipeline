@@ -1,5 +1,5 @@
 select
-    {{ dbt_utils.generate_surrogate_key(['vendorid', 'tpep_pickup_datetime']) }} as tripid,
+    {{ dbt_utils.generate_surrogate_key(['vendorid', 'tpep_pickup_datetime', 'tpep_dropoff_datetime', 'fare_amount']) }} as tripid,
     cast(vendorid as integer) as vendor_id,
     cast(ratecodeid as integer) as ratecode_id,
     cast(pulocationid as integer) as pickup_location_id,
@@ -15,7 +15,10 @@ select
     cast(trip_distance as numeric) as trip_distance,
 
     -- payment info
-    cast(payment_type as integer) as payment_type,
+
+
+    Coalesce(cast(payment_type as integer), 0) as payment_type,
+
     cast(fare_amount as numeric) as fare_amount,
     cast(extra as numeric) as extra,
     cast(mta_tax as numeric) as mta_tax,
@@ -25,4 +28,4 @@ select
     cast(total_amount as numeric) as total_amount
 
 from {{ source('raw_data', 'yellow_tripdata') }}
-where vendorid is not null
+where vendorid is not null and total_amount >= 0
