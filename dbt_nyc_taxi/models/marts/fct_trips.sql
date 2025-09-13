@@ -1,3 +1,12 @@
+{{
+    config(
+        materialized='table',
+        dist='pickup_borough',
+        sort='pickup_borough'
+    )
+}}
+
+
 with trips as (
     select * from {{ ref('stg_yellow_tripdata') }}
 ),
