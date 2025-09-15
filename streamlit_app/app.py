@@ -55,10 +55,21 @@ if not df.empty:
         "Select Month(s):", options=all_months, default=all_months
     )
 
+    st.sidebar.markdown("---")  # Visual separator
+
+    # --- NEW TOGGLE LOGIC ---
     all_dropoff_boroughs = sorted(borough_filtered_df["dropoff_borough"].unique())
-    selected_dropoff_boroughs = st.sidebar.multiselect(
-        "Select Dropoff Borough(s):", options=all_dropoff_boroughs, default=all_dropoff_boroughs
-    )
+    compare_all = st.sidebar.toggle("Compare All Dropoff Boroughs", value=True)
+
+    if compare_all:
+        selected_dropoff_boroughs = all_dropoff_boroughs
+    else:
+        selected_dropoff_boroughs = st.sidebar.multiselect(
+            "Select Specific Dropoff Borough(s):",
+            options=all_dropoff_boroughs,
+            default=all_dropoff_boroughs,
+        )
+    # --- END NEW LOGIC ---
 
     filtered_df = borough_filtered_df[
         (borough_filtered_df["trip_year"].isin(selected_years))
