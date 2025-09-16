@@ -41,7 +41,7 @@ variable "workgroup_name_suffix" {
 variable "base_capacity" {
   description = "The base Redshift Processing Units (RPU) for the workgroup. Min is 8 for cost saving."
   type        = number
-  default     = 16
+  default     = 4
 }
 
 variable "private_subnet_ids" {

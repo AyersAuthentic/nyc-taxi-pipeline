@@ -45,3 +45,13 @@ resource "aws_security_group_rule" "redshift_ingress_from_airflow_ec2" {
   protocol                 = "tcp"
   description              = "Ingress from Airflow EC2 to Redshift"
 }
+
+resource "aws_security_group_rule" "redshift_ingress_from_public_for_streamlit" {
+  type              = "ingress"
+  security_group_id = aws_security_group.redshift_vpc_sg.id
+  from_port         = 5439
+  to_port           = 5439
+  protocol          = "tcp"
+  cidr_blocks       = ["0.0.0.0/0"]
+  description       = "Allow public access for Streamlit Community Cloud app"
+}
