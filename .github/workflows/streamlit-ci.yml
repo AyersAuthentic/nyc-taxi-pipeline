@@ -1,0 +1,35 @@
+name: 'Streamlit App CI'
+
+on:
+  pull_request:
+    paths:
+      - 'streamlit_app/**'
+      - '.github/workflows/streamlit-ci.yml'
+
+jobs:
+  python_code_quality:
+    name: 'Python Code Quality Checks'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 'Checkout Code'
+        uses: actions/checkout@v4
+
+      - name: 'Set up Python'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 'Install dependencies'
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 black bandit
+
+      - name: 'Run Flake8 for linting'
+        run: flake8 streamlit_app/ --count --select=E9,F63,F7,F82 --show-source --statistics
+
+      - name: 'Run Black for formatting check'
+        run: black streamlit_app/ --check
+
+      - name: 'Run Bandit for security scan'
+        run: bandit -r streamlit_app/
