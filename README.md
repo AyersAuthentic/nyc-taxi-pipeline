@@ -30,7 +30,7 @@ The dashboard allows you to:
 
 ## 🏗️ Architecture Overview
 
-![Architecture Diagram](docs/nyc-taxi-diagram.png)
+![Architecture Diagram](nyc-taxi-diagram.drawio)
 
 ### Modern Data Stack Implementation
 
