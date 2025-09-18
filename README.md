@@ -473,4 +473,4 @@ This project is licensed under the MIT License
 
 *Built with ❤️ for data engineering interviews. This project demonstrates production-ready data pipeline development with modern cloud technologies.*
 
-**Portfolio Contact**: [Kevin Ayers](kevin.ayers123@icloud.com) | [LinkedIn](https://www.linkedin.com/in/kevin-ayers/) | [GitHub](https://github.com/AyersAuthentic)
+**Portfolio Contact**: [Kevin Ayers](https://kevinayers.dev) | [LinkedIn](https://www.linkedin.com/in/kevin-ayers/) | [GitHub](https://github.com/AyersAuthentic)
