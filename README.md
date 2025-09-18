@@ -19,6 +19,7 @@ Transportation operators need data-driven insights to optimize fleet deployment 
 ## 🚀 Live Demo
 
 **[Interactive Dashboard →](https://nyc-taxi-pipeline-kevinayers.streamlit.app)**
+- Heads up: This app is deployed on Streamlit's free Community Cloud. If it's been idle, it may take 45-60 seconds to wake up.
 
 The dashboard allows you to:
 - Filter by pickup borough and date range
